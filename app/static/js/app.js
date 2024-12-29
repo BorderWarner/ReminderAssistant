@@ -64,7 +64,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
     socket.on('connect', () => {
         console.log("Socket connected");
-        socket.emit('get_time');
+        // socket.emit('get_time');
+        socket.emit('get_toDo');
+    });
+
+    socket.on('toDo_received', (data) => {
+        const taskList = document.getElementById("task-list");
+
+        taskList.innerHTML = '';
+
+        data.forEach(task => {
+            const li = document.createElement("li");
+            li.textContent = `Время: ${task.time} - Задача: ${task.task}`;
+            taskList.appendChild(li);
+        });
     });
 
     socket.on("time_update", (data) => {
@@ -76,7 +89,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const taskList = document.getElementById("task-list");
         if (taskList) {
             const li = document.createElement("li");
-            li.textContent = task;
+            li.textContent = `Время: ${task.time} - Задача: ${task.task}`;
             taskList.appendChild(li);
         }
     });
