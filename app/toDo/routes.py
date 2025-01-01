@@ -28,7 +28,7 @@ def init_socketio_todo(app):
             todo = []
             for do in all_todo:
                 todo.append({'id': do.id,
-                             '': do.deadline.strftime('%d.%m.%Y %H:%M') if do.deadline else None,
+                             'deadline': do.deadline.strftime('%d.%m.%Y %H:%M') if do.deadline else None,
                              'task': do.task})
             socketio.emit('todo_update', todo)
         except Exception as e:
