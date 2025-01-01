@@ -52,3 +52,5 @@ class Purchase(db.Model):
     name = db.Column(db.Text, nullable=False)
     size = db.Column(db.Text, nullable=True)
     quantity = db.Column(db.Integer, nullable=True)
+    time = db.Column(db.DateTime, nullable=False)
+    status = db.Column(db.Text, default='Не куплено')

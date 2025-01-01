@@ -88,6 +88,7 @@ document.addEventListener("DOMContentLoaded", () => {
         socket.emit('get_birthdays');
         socket.emit('get_holidays');
         socket.emit('get_todo');
+        socket.emit('get_shopp_list');
     });
 
     // Полное обновление контейнеров
@@ -161,6 +162,21 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
 
+    socket.on('shopp_list_update', (data) => {
+        const shoppList = document.getElementById("shopp-list");
+        shoppList.innerHTML = '';
+        data.forEach(purchase => {
+            const div = document.createElement("div");
+            div.id = `purchase_${purchase.id}`;
+            if (purchase.size) {
+                div.textContent = `"${purchase.name}" ${purchase.size} в количестве ${purchase.quantity} шт.`;
+            } else {
+                div.textContent = `"${purchase.name}" в количестве ${purchase.quantity} шт.`;
+            }
+            shoppList.appendChild(div);
+        });
+    });
+
     // Добавление новых данных
     socket.on("new_task", (task) => {
         const taskList = document.getElementById("task-list");
@@ -181,6 +197,28 @@ document.addEventListener("DOMContentLoaded", () => {
         const taskElement = document.getElementById(`task_${task_id}`);
         if (taskElement) {
             taskElement.remove();
+        }
+    });
+
+    socket.on("new_purchase", (purchase) => {
+        const shoppList = document.getElementById("shopp-list");
+        if (shoppList) {
+            const div = document.createElement("div");
+            div.id = `purchase_${purchase.id}`;
+            if (purchase.size) {
+                div.textContent = `"${purchase.name}" ${purchase.size} в количестве ${purchase.quantity} шт.`;
+            } else {
+                div.textContent = `"${purchase.name}" в количестве ${purchase.quantity} шт.`;
+            }
+            shoppList.appendChild(div);
+        }
+    });
+
+    socket.on("delete_purchase", (data) => {
+        const purchase_id = data.purchase_id;
+        const purchaseElement = document.getElementById(`purchase_${task_id}`);
+        if (purchaseElement) {
+            purchaseElement.remove();
         }
     });
 

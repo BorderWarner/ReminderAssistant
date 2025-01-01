@@ -4,7 +4,7 @@ from telebot.types import KeyboardButton, \
     InlineKeyboardMarkup, InlineKeyboardButton
 from config import ConfigTelBot
 from app.database import db
-from app.models import Task, Birthday, Holiday, TelegramUser
+from app.models import Task, Birthday, Holiday, TelegramUser, Purchase
 from datetime import datetime
 from app import socketio
 import threading
@@ -43,9 +43,10 @@ def init_telebot(app):
                         )
                         db.session.add(new_user)
                         db.session.commit()
-                        bot.reply_to(message, "У вас нет доступа к этому боту, ожидайте подтверждения.")
-                        return
-                    return handler(message)
+                    if user.is_authorized:
+                        return handler(message)
+                    bot.reply_to(message, "У вас нет доступа к этому боту, ожидайте подтверждения.")
+                    return None
             except Exception as e:
                 bot.send_message(message.chat.id, f"Ошибка: {e}")
 
@@ -110,6 +111,9 @@ def init_telebot(app):
             ("addtask", "Добавить задачу"),
             ("tasks", "Показать список задач"),
             ("perform_task", "Выполнить задачу"),
+            ("addpurchase", "Добавить товар в список покупок"),
+            ("purchases", "Показать список покупок"),
+            ("delete_purchase", "Убрать из покупок"),
             ("addbirthday", "Добавить день рождения"),
             ("addholiday", "Добавить праздник")
         ]
@@ -216,7 +220,7 @@ def init_telebot(app):
                 deadline_str = f" с дедлайном {deadline.strftime('%d.%m.%Y %H:%M')}" if deadline else ""
                 bot.reply_to(
                     message,
-                    f'Задача "{task_text}" успешно добавлена {deadline_str}!',
+                    f'Задача "{task_text}" успешно добавлена{deadline_str}!',
                     reply_markup=ReplyKeyboardRemove()
                 )
         except Exception as e:
@@ -231,12 +235,12 @@ def init_telebot(app):
     def list_all_tasks(message):
         try:
             with app.app_context():
-                tasks = db.session.query(Task).filter(Task.status == 'Не выполнено').all()
+                tasks = db.session.query(Task).filter(Task.status != 'Выполнено').all()
                 if not tasks:
                     bot.reply_to(message, "Нет задач.")
                     return
 
-                tasks_list = "\n".join([f"{task.id}. {task.task}" for task in tasks])
+                tasks_list = "\n".join([f"- {task.task}" for task in tasks])
 
                 bot.send_message(
                     message.chat.id,
@@ -259,7 +263,7 @@ def init_telebot(app):
                 keyboard = []
                 for task in tasks:
                     button = InlineKeyboardButton(task.task,
-                                                  callback_data=f'perform_{task.id}')
+                                                  callback_data=f'perform_task_{task.id}')
                     keyboard.append([button])
 
                 reply_markup = InlineKeyboardMarkup(keyboard)
@@ -268,11 +272,11 @@ def init_telebot(app):
         except Exception as e:
             bot.reply_to(message, f"Ошибка: {e}")
 
-    @bot.callback_query_handler(func=lambda call: call.data.startswith('perform_'))
+    @bot.callback_query_handler(func=lambda call: call.data.startswith('perform_task_'))
     @authorized_users_only
     def perform_task_callback(call):
         try:
-            task_id = int(call.data.split('_')[1])
+            task_id = int(call.data.split('_')[2])
             with app.app_context():
                 task = Task.query.get(task_id)
                 if not task:
@@ -298,6 +302,210 @@ def init_telebot(app):
 
         except Exception as e:
             bot.answer_callback_query(call.id, f"Ошибка при выполнении задачи: {e}")
+
+    @bot.message_handler(commands=['addpurchase'])
+    @authorized_users_only
+    def add_purchase_start(message):
+        bot.reply_to(
+            message,
+            "С помощью этой команды можно добавить товар в список покупок. Укажите, нужен ли объема/размер товара.",
+            reply_markup=purchase_type_buttons()
+        )
+        bot.send_message(
+            message.chat.id,
+            "Для выхода нажмите 'Отмена'.",
+            reply_markup=cancel_button()
+        )
+
+    def purchase_type_buttons():
+        """Кнопки для выбора типа покупки."""
+        keyboard = InlineKeyboardMarkup()
+        keyboard.add(
+            InlineKeyboardButton("С указанием объема", callback_data="purchase_with_size"),
+            InlineKeyboardButton("Без указания объема", callback_data="purchase_without_size")
+        )
+        return keyboard
+
+    @bot.callback_query_handler(func=lambda call: call.data in ["purchase_with_size", "purchase_without_size"])
+    @authorized_users_only
+    def handle_purchase_type(call):
+        if call.data == "purchase_with_size":
+            bot.send_message(
+                call.message.chat.id,
+                "Введите объем/размер товара или нажмите 'Отмена'.",
+                reply_markup=cancel_button()
+            )
+            bot.register_next_step_handler(call.message, validate_size)
+        elif call.data == "purchase_without_size":
+            bot.send_message(
+                call.message.chat.id,
+                "Введите название товара или нажмите 'Отмена'.",
+                reply_markup=cancel_button()
+            )
+            bot.register_next_step_handler(call.message, validate_purchase)
+
+    def validate_size(message):
+        """Проверяет введённый размер и переходит к названию покупки."""
+        if message.text.strip().lower() == "отмена":
+            cancel_process(message)
+            return
+
+        size = message.text.strip()
+        bot.reply_to(
+            message,
+            "Введите название товара.",
+            reply_markup=cancel_button()
+        )
+        bot.register_next_step_handler(message, lambda msg: validate_purchase(msg, size=size))
+
+    def validate_purchase(message, size=None):
+        """Проверяет название покупки и запрашивает количество."""
+        if message.text.strip().lower() == "отмена":
+            cancel_process(message)
+            return
+
+        if not message.text.strip():
+            bot.reply_to(
+                message,
+                "Название товара не может быть пустым. Попробуйте снова.",
+                reply_markup=cancel_button()
+            )
+            bot.register_next_step_handler(message, lambda msg: validate_purchase(msg, size=size))
+            return
+
+        name = message.text.strip()
+        bot.reply_to(
+            message,
+            "Введите количество товара.",
+            reply_markup=cancel_button()
+        )
+        bot.register_next_step_handler(message, lambda msg: validate_quantity(msg, name=name, size=size))
+
+    def validate_quantity(message, name, size=None):
+        """Проверяет введённое количество и сохраняет покупку."""
+        if message.text.strip().lower() == "отмена":
+            cancel_process(message)
+            return
+
+        try:
+            quantity = int(message.text.strip())
+            if quantity <= 0:
+                raise ValueError("Количество должно быть положительным числом.")
+
+            save_purchase(message, name, size, quantity)
+        except ValueError:
+            bot.reply_to(
+                message,
+                "Количество должно быть положительным целым числом. Попробуйте снова.",
+                reply_markup=cancel_button()
+            )
+            bot.register_next_step_handler(message, lambda msg: validate_quantity(msg, name=name, size=size))
+
+    def save_purchase(message, name, size, quantity):
+        """Сохраняет покупку в базе данных."""
+        try:
+            with app.app_context():
+                new_purchase = Purchase(
+                    name=name,
+                    size=size,
+                    quantity=quantity,
+                    status="Не куплено",
+                    time=datetime.now()
+                )
+                db.session.add(new_purchase)
+                db.session.commit()
+                db.session.refresh(new_purchase)
+
+                socketio.emit('new_purchase', {'id': new_purchase.id,
+                                               'name': new_purchase.name,
+                                               'size': new_purchase.size,
+                                               'quantity': new_purchase.quantity})
+
+                size_str = f" с объемом/размером {size}" if size else " без указания объема/размера"
+                bot.reply_to(
+                    message,
+                    f'Товар "{name}" ({quantity} шт.) успешно добавлен{size_str}.',
+                    reply_markup=ReplyKeyboardRemove()
+                )
+        except Exception as e:
+            bot.reply_to(
+                message,
+                f"Ошибка: {e}",
+                reply_markup=ReplyKeyboardRemove()
+            )
+
+    @bot.message_handler(commands=['purchases'])
+    @authorized_users_only
+    def list_all_purchases(message):
+        try:
+            with app.app_context():
+                purchases = db.session.query(Purchase).filter(Purchase.status != 'Куплено').all()
+                if not purchases:
+                    bot.reply_to(message, "Список покупок пуст.")
+                    return
+
+                purchase_list = "\n".join([
+                    f" ◦ {purchase.name} {'(' + purchase.size + ') ' if purchase.size else ''}- {purchase.quantity} шт."
+                    for purchase in purchases
+                ])
+
+                bot.send_message(
+                    message.chat.id,
+                    f"Список покупок:\n{purchase_list}",
+                )
+        except Exception as e:
+            bot.reply_to(message, f"Ошибка: {e}")
+
+    @bot.message_handler(commands=['delete_purchase'])
+    @authorized_users_only
+    def list_purchases_with_buttons(message):
+        try:
+            with app.app_context():
+                purchases = db.session.query(Purchase).filter(Purchase.status != 'Куплено').all()
+                if not purchases:
+                    bot.reply_to(message, "Список покупок пуст.")
+                    return
+
+                keyboard = []
+                for purchase in purchases:
+                    button = InlineKeyboardButton(purchase.name, callback_data=f'delete_purchase_{purchase.id}')
+                    keyboard.append([button])
+
+                reply_markup = InlineKeyboardMarkup(keyboard)
+                bot.reply_to(message, "Выберите товар для удаления:", reply_markup=reply_markup)
+
+        except Exception as e:
+            bot.reply_to(message, f"Ошибка: {e}")
+
+    @bot.callback_query_handler(func=lambda call: call.data.startswith('delete_purchase_'))
+    @authorized_users_only
+    def delete_purchase_callback(call):
+        try:
+            purchase_id = int(call.data.split('_')[2])
+            with app.app_context():
+                purchase = Purchase.query.get(purchase_id)
+                if not purchase:
+                    bot.answer_callback_query(call.id, "Товар не найден.")
+                    return
+
+                if purchase.status == 'Куплено':
+                    bot.answer_callback_query(call.id, "Этот товар уже удален.")
+                    return
+
+                purchase.status = 'Куплено'
+                db.session.commit()
+
+                socketio.emit('delete_purchase', {'purchase_id': purchase.id})
+
+                bot.answer_callback_query(call.id, f'Товар {purchase.name} удален!')
+
+                bot.edit_message_text(
+                    text=f'Товар {purchase.name} успешно удален!',
+                    chat_id=call.message.chat.id,
+                    message_id=call.message.message_id
+                )
+        except Exception as e:
+            bot.answer_callback_query(call.id, f"Ошибка при удалении: {e}")
 
     @bot.message_handler(commands=['addbirthday'])
     @authorized_users_only
