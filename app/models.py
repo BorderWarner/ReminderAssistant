@@ -7,6 +7,7 @@ class Task(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     task = db.Column(db.Text, nullable=False)
     time = db.Column(db.Text, nullable=False)
+    status = db.Column(db.Text, default='Не выполнено')
 
 
 class Birthday(db.Model):

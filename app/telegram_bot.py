@@ -1,5 +1,7 @@
 import telebot
-from telebot.types import KeyboardButton, ReplyKeyboardMarkup, ReplyKeyboardRemove
+from telebot.types import KeyboardButton, \
+    ReplyKeyboardMarkup, ReplyKeyboardRemove, \
+    InlineKeyboardMarkup, InlineKeyboardButton
 from config import ConfigTelBot
 from app.database import db
 from app.models import Task, Birthday, Holiday
@@ -13,10 +15,8 @@ bot_stop_event = threading.Event()
 
 
 def stop_telegram_bot():
-    print(1)
     bot_stop_event.set()
     bot.stop_polling()
-    print(2)
 
 
 def run_telegram_bot(app):
@@ -30,13 +30,12 @@ def run_telegram_bot(app):
 
 
 def init_telebot(app):
-
-    commands = [
-        ("help", "Показать справку с доступными командами"),
-        ("addtask", "Добавить задачу"),
-        ("addbirthday", "Добавить день рождения"),
-        ("addholiday", "Добавить праздник")
-    ]
+    # commands = [
+    #     ("help", "Показать справку с доступными командами"),
+    #     ("addtask", "Добавить задачу"),
+    #     ("addbirthday", "Добавить день рождения"),
+    #     ("addholiday", "Добавить праздник")
+    # ]
 
     def generate_commands_keyboard(comms):
         markup = ReplyKeyboardMarkup(resize_keyboard=True)
@@ -71,13 +70,15 @@ def init_telebot(app):
     @bot.message_handler(commands=['help'])
     def send_help(message):
         help_message = "Вот список всех доступных команд и их описание:"
-        for command, description in commands:
-            help_message += f"\n/{command} - {description}"
         comms = [
             ("addtask", "Добавить задачу"),
             ("addbirthday", "Добавить день рождения"),
-            ("addholiday", "Добавить праздник")
+            ("addholiday", "Добавить праздник"),
+            ("tasks", "Показать список задач"),
+            ("perform_task", "Выполнить задачу")
         ]
+        for command, description in comms:
+            help_message += f"\n/{command} - {description}"
 
         bot.send_message(message.chat.id, help_message, reply_markup=generate_commands_keyboard(comms))
 
@@ -108,7 +109,9 @@ def init_telebot(app):
                 new_task = Task(task=task, time=datetime.now().strftime('%H:%M:%S'))
                 db.session.add(new_task)
                 db.session.commit()
-                socketio.emit('new_task', {'time': new_task.time,
+                db.session.refresh(new_task)
+                socketio.emit('new_task', {'id': new_task.id,
+                                           'time': new_task.time,
                                            'task': new_task.task})
                 bot.reply_to(
                     message,
@@ -121,6 +124,76 @@ def init_telebot(app):
                 f"Ошибка: {e}",
                 reply_markup=ReplyKeyboardRemove()
             )
+
+    @bot.message_handler(commands=['tasks'])
+    def list_all_tasks(message):
+        try:
+            with app.app_context():
+                tasks = db.session.query(Task).filter(Task.status == 'Не выполнено').all()
+                if not tasks:
+                    bot.reply_to(message, "Нет задач.")
+                    return
+
+                tasks_list = "\n".join([f"{task.id}. {task.task}" for task in tasks])
+
+                bot.send_message(
+                    message.chat.id,
+                    f"Вот список всех невыполненных задач:\n{tasks_list}",
+                )
+
+        except Exception as e:
+            bot.reply_to(message, f"Ошибка: {e}")
+
+    @bot.message_handler(commands=['perform_task'])
+    def list_tasks_with_buttons(message):
+        try:
+            with app.app_context():
+                tasks = db.session.query(Task).filter(Task.status != 'Выполнено').all()
+                if not tasks:
+                    bot.reply_to(message, "Нет невыполненных задач.")
+                    return
+
+                keyboard = []
+                for task in tasks:
+                    button = InlineKeyboardButton(task.task,
+                                                  callback_data=f'perform_{task.id}')
+                    keyboard.append([button])
+
+                reply_markup = InlineKeyboardMarkup(keyboard)
+                bot.reply_to(message, "Выберите задачу для выполнения:", reply_markup=reply_markup)
+
+        except Exception as e:
+            bot.reply_to(message, f"Ошибка: {e}")
+
+    @bot.callback_query_handler(func=lambda call: call.data.startswith('perform_'))
+    def perform_task_callback(call):
+        try:
+            task_id = int(call.data.split('_')[1])
+            with app.app_context():
+                task = Task.query.get(task_id)
+                if not task:
+                    bot.answer_callback_query(call.id, "Задача не найдена.")
+                    return
+
+                if task.status == 'Выполнено':
+                    bot.answer_callback_query(call.id, "Эта задача уже выполнена.")
+                    return
+
+                task.status = 'Выполнено'
+                db.session.commit()
+
+                socketio.emit('delete_task', {'task_id': task.id})
+
+                bot.answer_callback_query(call.id, f'Задача {task.task} выполнена!')
+
+                bot.edit_message_text(
+                    text=f'Задача {task.task} выполнена!',
+                    chat_id=call.message.chat.id,
+                    message_id=call.message.message_id
+                )
+
+        except Exception as e:
+            bot.answer_callback_query(call.id, f"Ошибка при выполнении задачи: {e}")
 
     @bot.message_handler(commands=['addbirthday'])
     def add_birthday_prompt(message):

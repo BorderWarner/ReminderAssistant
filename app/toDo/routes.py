@@ -23,10 +23,11 @@ def init_socketio_todo(app):
     @socketio.on('get_todo')
     def get_todo():
         try:
-            all_todo = db.session.query(Task).all()
+            all_todo = db.session.query(Task).filter(Task.status == 'Не выполнено').all()
             todo = []
             for do in all_todo:
-                todo.append({'time': do.time,
+                todo.append({'id': do.id,
+                             'time': do.time,
                              'task': do.task})
             socketio.emit('todo_update', todo)
         except Exception as e:

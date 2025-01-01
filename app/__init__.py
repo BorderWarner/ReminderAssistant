@@ -10,6 +10,7 @@ from flask_socketio import SocketIO
 from app.base_socket import init_socketio_base
 from flask_apscheduler import APScheduler
 
+
 socketio = SocketIO()
 scheduler = APScheduler()
 

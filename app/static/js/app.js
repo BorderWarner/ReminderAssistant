@@ -133,6 +133,7 @@ document.addEventListener("DOMContentLoaded", () => {
         taskList.innerHTML = '';
         data.forEach(task => {
             const li = document.createElement("li");
+            li.id = `task_${task.id}`;
             li.textContent = `Время: ${task.time} - Задача: ${task.task}`;
             taskList.appendChild(li);
         });
@@ -143,8 +144,18 @@ document.addEventListener("DOMContentLoaded", () => {
         const taskList = document.getElementById("task-list");
         if (taskList) {
             const li = document.createElement("li");
+            li.id = `task_${task.id}`;
             li.textContent = `Время: ${task.time} - Задача: ${task.task}`;
             taskList.appendChild(li);
+        }
+    });
+
+    socket.on("delete_task", (data) => {
+        console.log(data)
+        const task_id = data.task_id;
+        const taskElement = document.getElementById(`task_${task_id}`);
+        if (taskElement) {
+            taskElement.remove();
         }
     });
 
