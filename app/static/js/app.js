@@ -5,30 +5,43 @@ document.addEventListener("DOMContentLoaded", () => {
     const views = {
         main: `
             <div id="main-view">
-                <div id="current-time">Время: </div>
-                <div id="weather-container">
+                <div id="current-time" class="d_container">
+                    <div id="time-text"></div>
+                    <div id="day-text"></div>
+                </div>
+                <div id="weather-container" class="d_container">
                     <div class="weather-upper">
-                        <h2 id="current-temp">- °C</h2>
+                        <div id="current-temp">- °C</div>
                         <img id="current-icon" src="" alt="Погода">
-                        <p id="current-desc">---</p>
-                        <p>Ветер: <span id="current-wind">-</span> м/с</p>
-                        <p>Влажность: <span id="current-humidity">-</span>%</p>
+                        <div id="current-desc">---</div>
+                        <div>Ветер: <span id="current-wind">-</span> м/с</div>
+                        <div>Влажность: <span id="current-humidity">-</span>%</div>
                     </div>
                     <div class="weather-lower">
                         <div class="weather-chart" id="weather-chart"></div>
                     </div>
                 </div>
-                <div id="birthdays-container">
-                    <h2>Ближайшие дни рождения</h2>
-                    <ul id="birthday-list"></ul>
-                </div>
-                <div id="holidays-container">
-                    <h2>Ближайшие праздники</h2>
-                    <ul id="holiday-list"></ul>
-                </div>
-                <div id="task-list-container">
-                    <h2>Список задач</h2>
-                    <ul id="task-list"></ul>
+                <div id="reminder-container" class="d_container">
+                    <div id="bAndH">
+                        <div id="birthdays-container">
+                            <div>Дни рождения</div>
+                            <ul id="birthday-list"></ul>
+                        </div>
+                        <div id="holidays-container">
+                            <div>Праздники</div>
+                            <ul id="holiday-list"></ul>
+                        </div>
+                    </div>
+                    <div id="tAndS">
+                        <div id="task-list-container">
+                            <div>Список задач</div>
+                            <ul id="task-list"></ul>
+                        </div>
+                        <div id="shopp-list-container">
+                            <div>Список покупок</div>
+                            <ul id="shopp-list"></ul>
+                        </div>
+                    </div>
                 </div>
             </div>
         `,
@@ -79,8 +92,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Полное обновление контейнеров
     socket.on("time_update", (data) => {
-        const timeDiv = document.getElementById("current-time");
-        if (timeDiv) timeDiv.textContent = `Время: ${data}`;
+        const timeDiv = document.getElementById("time-text");
+        const dayDiv = document.getElementById("day-text");
+        if (data) {
+            timeDiv.textContent = `${data.current_time}`;
+            dayDiv.textContent = `${data.formatted_date}`;
+        }
     });
 
     socket.on("weather_update", (data) => {
@@ -98,10 +115,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
             data.hourly.forEach(entry => {
                 const item = document.createElement("div");
+                item.className = 'weather_hour_card';
                 item.innerHTML = `
-                    <div>${entry.time}</div>
+                    <div class="inscription_we">${entry.time}</div>
                     <img src="${entry.icon}" alt="${entry.description}">
-                    <div>${entry.temp}°C</div>
+                    <div class="inscription_we">${entry.temp}°C</div>
                 `;
                 chart.appendChild(item);
             });

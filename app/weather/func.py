@@ -34,8 +34,11 @@ def get_forecast_weather():
                     'humidity': humidity
                 }
 
-                if date_time.date() == today:
+                if len(forecast) < 8:
                     forecast.append(forecast_entry)
+
+                # if date_time.date() == today:
+                #     forecast.append(forecast_entry)
 
             return forecast
         return []

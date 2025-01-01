@@ -1,30 +1,128 @@
+#main-view {
+    height: 100%;
+    padding: 0 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: #160c03;
+    font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+    font-size: 25px;
+    color: #160c03;
+    text-align: center;
+    justify-content: center;
+}
+
+.d_container {
+    width: 98%;
+    height: auto;
+    min-height: 220px;
+    margin-bottom: 20px;
+    background: rgb(241, 128, 20);
+    border-radius: 15px;
+    display: flex;
+    justify-content: center;
+    position: relative;
+    flex-direction: column;
+    background: linear-gradient(to right, rgb(192, 115, 45), rgb(238, 185, 136));
+    transition: all 0.3s ease-in-out;
+    overflow: hidden;
+}
+
 #weather-container {
-    width: 90%;
-    margin: auto;
-    font-family: Arial, sans-serif;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    background-color: #f9f9f9;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-evenly;
+    height: 25%;
+}
+
+#bAndH, #tAndS {
+    display: flex;
+    min-height: 200px;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-around;
+    height: 50%;
+}
+
+#birthdays-container, #holidays-container{
+    width: 50%;
+    height: 100%;
+    border-bottom: 5px solid #160c03;
+}
+
+#birthdays-container {
+    border-right: 5px solid #160c03;
+}
+
+#task-list-container, #shopp-list-container{
+    width: 50%;
+    height: 100%;
+    border-bottom: 5px solid #160c03;
+}
+
+#task-list-container {
+    border-right: 5px solid #160c03;
+}
+
+#reminder-container {
+    margin-bottom: 0;
+    height: 50%;
+}
+
+#time-text {
+  font-size: 100px;
+  margin-top: 0;
+  text-align: center;
+  font-weight: 600;
+}
+
+#day-text {
+  font-size: 60px;
+  margin-top: 0;
+  text-align: center;
+  font-weight: 500;
+}
+
+#current-temp {
+    font-size: 60px;
 }
 .weather-upper, .weather-lower {
-    padding: 10px;
     text-align: center;
+    width: 50%;
+    height: 100%;
 }
 .weather-upper {
-    border-bottom: 1px solid #ccc;
+    display: flex;
+    text-align: center;
+    width: 50%;
+    height: 100%;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border-right: 5px solid #160c03;
 }
 .weather-upper img {
     width: 70px;
     height: 70px;
 }
 .weather-chart {
+    height: 100%;
     display: flex;
-    justify-content: space-around;
     flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    align-content: center;
 }
-.weather-chart div {
+.weather_hour_card {
     text-align: center;
-    width: 50px;
+    padding: 5px;
+    margin: 5px;
+    border: 2px solid #160c03;
+    border-radius: 10px;
+    font-size: 35px;
+}
+.inscription_we {
+    border: none;
 }
 .weather-chart img {
     width: 30px;
