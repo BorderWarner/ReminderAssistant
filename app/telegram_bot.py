@@ -4,7 +4,7 @@ from telebot.types import KeyboardButton, \
     InlineKeyboardMarkup, InlineKeyboardButton
 from config import ConfigTelBot
 from app.database import db
-from app.models import Task, Birthday, Holiday
+from app.models import Task, Birthday, Holiday, TelegramUser
 from datetime import datetime
 from app import socketio
 import threading
@@ -30,12 +30,19 @@ def run_telegram_bot(app):
 
 
 def init_telebot(app):
-    # commands = [
-    #     ("help", "Показать справку с доступными командами"),
-    #     ("addtask", "Добавить задачу"),
-    #     ("addbirthday", "Добавить день рождения"),
-    #     ("addholiday", "Добавить праздник")
-    # ]
+    def authorized_users_only(handler):
+        def wrapper(message):
+            try:
+                with app.app_context():
+                    user = db.session.query(TelegramUser).filter_by(telegram_id=message.from_user.id).first()
+                    if not user:
+                        bot.reply_to(message, "У вас нет доступа к этому боту, ожидайте подтверждения.")
+                        return
+                    return handler(message)
+            except Exception as e:
+                bot.send_message(message.chat.id, f"Ошибка: {e}")
+
+        return wrapper
 
     def generate_commands_keyboard(comms):
         markup = ReplyKeyboardMarkup(resize_keyboard=True)
@@ -58,16 +65,35 @@ def init_telebot(app):
 
     @bot.message_handler(commands=['start'])
     def send_welcome(message):
-        welcome_message = (
-            "Привет! Я могу помочь вам с задачами, днями рождения и праздниками. "
-            "Нажмите на кнопку ниже для получения подробной информации."
-        )
-        comms = [
-            ("help", "Показать справку с доступными командами")
-        ]
-        bot.send_message(message.chat.id, welcome_message, reply_markup=generate_commands_keyboard(comms))
+        try:
+            with app.app_context():
+                user = db.session.query(TelegramUser).filter_by(telegram_id=message.from_user.id).first()
+                if not user:
+                    new_user = TelegramUser(
+                        telegram_id=message.from_user.id,
+                        username=message.from_user.username,
+                        full_name=f"{message.from_user.first_name} {message.from_user.last_name or ''}".strip()
+                    )
+                    db.session.add(new_user)
+                    db.session.commit()
+                    bot.send_message(
+                        message.chat.id,
+                        "Вы успешно зарегистрированы! Ожидайте подтверждения от администратора."
+                    )
+                else:
+                    welcome_message = (
+                        "Привет! Я могу помочь вам с задачами, днями рождения, праздниками и списком покупок. "
+                        "Нажмите на кнопку ниже для получения подробной информации."
+                    )
+                    comms = [
+                        ("help", "Показать справку с доступными командами")
+                    ]
+                    bot.send_message(message.chat.id, welcome_message, reply_markup=generate_commands_keyboard(comms))
+        except Exception as e:
+            bot.send_message(message.chat.id, f"Ошибка: {e}")
 
     @bot.message_handler(commands=['help'])
+    @authorized_users_only
     def send_help(message):
         help_message = "Вот список всех доступных команд и их описание:"
         comms = [
@@ -83,6 +109,7 @@ def init_telebot(app):
         bot.send_message(message.chat.id, help_message, reply_markup=generate_commands_keyboard(comms))
 
     @bot.message_handler(commands=['addtask'])
+    @authorized_users_only
     def add_task_prompt(message):
         bot.reply_to(
             message,
@@ -126,6 +153,7 @@ def init_telebot(app):
             )
 
     @bot.message_handler(commands=['tasks'])
+    @authorized_users_only
     def list_all_tasks(message):
         try:
             with app.app_context():
@@ -145,6 +173,7 @@ def init_telebot(app):
             bot.reply_to(message, f"Ошибка: {e}")
 
     @bot.message_handler(commands=['perform_task'])
+    @authorized_users_only
     def list_tasks_with_buttons(message):
         try:
             with app.app_context():
@@ -166,6 +195,7 @@ def init_telebot(app):
             bot.reply_to(message, f"Ошибка: {e}")
 
     @bot.callback_query_handler(func=lambda call: call.data.startswith('perform_'))
+    @authorized_users_only
     def perform_task_callback(call):
         try:
             task_id = int(call.data.split('_')[1])
@@ -196,6 +226,7 @@ def init_telebot(app):
             bot.answer_callback_query(call.id, f"Ошибка при выполнении задачи: {e}")
 
     @bot.message_handler(commands=['addbirthday'])
+    @authorized_users_only
     def add_birthday_prompt(message):
         bot.reply_to(
             message,
@@ -240,6 +271,7 @@ def init_telebot(app):
             bot.reply_to(message, f"Ошибка: {e}")
 
     @bot.message_handler(commands=['addholiday'])
+    @authorized_users_only
     def add_holiday_prompt(message):
         bot.reply_to(
             message,

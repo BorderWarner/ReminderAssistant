@@ -1,4 +1,16 @@
 from app.database import db
+from datetime import datetime
+
+
+class TelegramUser(db.Model):
+    __tablename__ = 'telegram_user'
+
+    id = db.Column(db.Integer, primary_key=True)
+    telegram_id = db.Column(db.BigInteger, unique=True, nullable=False)
+    username = db.Column(db.Text)
+    full_name = db.Column(db.Text)
+    is_authorized = db.Column(db.Boolean, default=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 
 class Task(db.Model):
