@@ -150,10 +150,15 @@ document.addEventListener("DOMContentLoaded", () => {
         const taskList = document.getElementById("task-list");
         taskList.innerHTML = '';
         data.forEach(task => {
-            const li = document.createElement("li");
-            li.id = `task_${task.id}`;
-            li.textContent = `Время: ${task.time} - Задача: ${task.task}`;
-            taskList.appendChild(li);
+            const div = document.createElement("div");
+            div.id = `task_${task.id}`;
+            console.log(task.deadline)
+            if (task.deadline) {
+                div.textContent = `${task.task} до ${task.deadline}`;
+            } else {
+                div.textContent = `${task.task}`;
+            }
+            taskList.appendChild(div);
         });
     });
 
@@ -161,10 +166,15 @@ document.addEventListener("DOMContentLoaded", () => {
     socket.on("new_task", (task) => {
         const taskList = document.getElementById("task-list");
         if (taskList) {
-            const li = document.createElement("li");
-            li.id = `task_${task.id}`;
-            li.textContent = `Время: ${task.time} - Задача: ${task.task}`;
-            taskList.appendChild(li);
+            const div = document.createElement("div");
+            div.id = `task_${task.id}`;
+            console.log(task.deadline)
+            if (task.deadline) {
+                div.textContent = `${task.task} до ${task.deadline}`;
+            } else {
+                div.textContent = `${task.task}`;
+            }
+            taskList.appendChild(div);
         }
     });
 

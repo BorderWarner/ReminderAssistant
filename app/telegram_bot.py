@@ -36,6 +36,13 @@ def init_telebot(app):
                 with app.app_context():
                     user = db.session.query(TelegramUser).filter_by(telegram_id=message.from_user.id).first()
                     if not user:
+                        new_user = TelegramUser(
+                            telegram_id=message.from_user.id,
+                            username=message.from_user.username,
+                            full_name=f"{message.from_user.first_name} {message.from_user.last_name or ''}".strip()
+                        )
+                        db.session.add(new_user)
+                        db.session.commit()
                         bot.reply_to(message, "У вас нет доступа к этому боту, ожидайте подтверждения.")
                         return
                     return handler(message)
@@ -193,21 +200,18 @@ def init_telebot(app):
             with app.app_context():
                 new_task = Task(
                     task=task_text,
-                    time=datetime.now().strftime('%H:%M:%S'),
-                    deadline=deadline or datetime.now(),
+                    time=datetime.now(),
+                    deadline=deadline,
                     status="Не выполнено"
                 )
                 db.session.add(new_task)
                 db.session.commit()
                 db.session.refresh(new_task)
 
-                socketio.emit('new_task', {
-                    'id': new_task.id,
-                    'time': new_task.time,
-                    'task': new_task.task,
-                    'deadline': new_task.deadline.strftime('%d.%m.%Y %H:%M'),
-                    'status': new_task.status
-                })
+                socketio.emit('new_task', {'id': new_task.id,
+                                           'deadline': new_task.deadline.strftime('%d.%m.%Y %H:%M') if
+                                           new_task.deadline else None,
+                                           'task': new_task.task})
 
                 deadline_str = f" с дедлайном {deadline.strftime('%d.%m.%Y %H:%M')}" if deadline else ""
                 bot.reply_to(

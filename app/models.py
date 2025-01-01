@@ -18,8 +18,8 @@ class Task(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     task = db.Column(db.Text, nullable=False)
-    time = db.Column(db.Text, nullable=False)
-    deadline = db.Column(db.DateTime, nullable=False)
+    time = db.Column(db.DateTime, nullable=False)
+    deadline = db.Column(db.DateTime, nullable=True)
     status = db.Column(db.Text, default='Не выполнено')
 
 
@@ -42,6 +42,7 @@ class Holiday(db.Model):
     day = db.Column(db.Integer, nullable=False)
     month = db.Column(db.Integer, nullable=False)
     year = db.Column(db.Integer, nullable=True)
+    group = db.Column(db.Text, nullable=True)
 
 
 class Purchase(db.Model):
