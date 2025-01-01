@@ -15,3 +15,6 @@ shoppList_bp = Blueprint('shoppList', __name__)
 def shoppList():
     return render_template('1.html')
 
+
+def init_socketio_shopplist(app):
+    from app import socketio
