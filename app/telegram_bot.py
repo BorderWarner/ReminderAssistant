@@ -57,6 +57,9 @@ def init_telebot(app):
 
     @bot.message_handler(func=lambda message: not message.text.startswith('/'))
     def handle_unknown_message(message):
+        if message.text.strip().lower() == "отмена":
+            cancel_process(message)
+            return
         comms = [("help", "Показать справку с доступными командами")]
         response = (
             "Извините, я не понимаю это сообщение. Нажмите кнопку ниже для получения справки."
@@ -110,39 +113,106 @@ def init_telebot(app):
 
     @bot.message_handler(commands=['addtask'])
     @authorized_users_only
-    def add_task_prompt(message):
+    def add_task_start(message):
         bot.reply_to(
             message,
-            "Введите текст задачи или нажмите 'Отмена' для выхода.",
+            "С помощью этой команды можно добавить задачу. Укажите, нужна ли задача с дедлайном.",
+            reply_markup=task_type_buttons()
+        )
+        bot.send_message(
+            message.chat.id,
+            "Для выхода нажмите 'Отмена'.",
             reply_markup=cancel_button()
         )
-        bot.register_next_step_handler(message, validate_task)
 
-    def validate_task(message):
+    def task_type_buttons():
+        """Кнопки для выбора типа задачи."""
+        keyboard = InlineKeyboardMarkup()
+        keyboard.add(
+            InlineKeyboardButton("С дедлайном", callback_data="task_with_deadline"),
+            InlineKeyboardButton("Без дедлайна", callback_data="task_without_deadline")
+        )
+        return keyboard
+
+    @bot.callback_query_handler(func=lambda call: call.data in ["task_with_deadline", "task_without_deadline"])
+    def handle_task_type(call):
+        if call.data == "task_with_deadline":
+            bot.send_message(
+                call.message.chat.id,
+                "Введите дедлайн задачи в формате ДД.ММ.ГГГГ ЧЧ:ММ или нажмите 'Отмена'.",
+                reply_markup=cancel_button()
+            )
+            bot.register_next_step_handler(call.message, validate_deadline)
+        elif call.data == "task_without_deadline":
+            bot.send_message(
+                call.message.chat.id,
+                "Введите текст задачи или нажмите 'Отмена'.",
+                reply_markup=cancel_button()
+            )
+            bot.register_next_step_handler(call.message, validate_task)
+
+    def validate_deadline(message):
         if message.text.strip().lower() == "отмена":
             cancel_process(message)
             return
-        if not message.text.strip():
-            bot.reply_to(message, "Задача не может быть пустой. Попробуйте ещё раз.", reply_markup=cancel_button())
-            bot.register_next_step_handler(message, validate_task)
+
+        try:
+            deadline = datetime.strptime(message.text.strip(), '%d.%m.%Y %H:%M')
+            bot.reply_to(
+                message,
+                "Введите текст задачи или нажмите 'Отмена'.",
+                reply_markup=cancel_button()
+            )
+            bot.register_next_step_handler(message, validate_task, deadline)
+        except ValueError:
+            bot.reply_to(
+                message,
+                "Неверный формат даты. Попробуйте ещё раз в формате ДД.ММ.ГГГГ ЧЧ:ММ.",
+                reply_markup=cancel_button()
+            )
+            bot.register_next_step_handler(message, validate_deadline)
+
+    def validate_task(message, deadline=None):
+        if message.text.strip().lower() == "отмена":
+            cancel_process(message)
             return
 
-        save_task(message)
+        if not message.text.strip():
+            bot.reply_to(
+                message,
+                "Текст задачи не может быть пустым. Попробуйте снова.",
+                reply_markup=cancel_button()
+            )
+            bot.register_next_step_handler(message, validate_task, deadline)
+            return
 
-    def save_task(message):
+        save_task(message, message.text.strip(), deadline)
+
+    def save_task(message, task_text, deadline):
         try:
-            task = message.text
             with app.app_context():
-                new_task = Task(task=task, time=datetime.now().strftime('%H:%M:%S'))
+                new_task = Task(
+                    task=task_text,
+                    time=datetime.now().strftime('%H:%M:%S'),
+                    deadline=deadline or datetime.now(),
+                    status="Не выполнено"
+                )
                 db.session.add(new_task)
                 db.session.commit()
                 db.session.refresh(new_task)
-                socketio.emit('new_task', {'id': new_task.id,
-                                           'time': new_task.time,
-                                           'task': new_task.task})
+
+                socketio.emit('new_task', {
+                    'id': new_task.id,
+                    'time': new_task.time,
+                    'task': new_task.task,
+                    'deadline': new_task.deadline.strftime('%d.%m.%Y %H:%M'),
+                    'status': new_task.status
+                })
+
+                deadline_str = f" с дедлайном {deadline.strftime('%d.%m.%Y %H:%M')}" if deadline else ""
                 bot.reply_to(
                     message,
-                    f'Задача "{task}" успешно добавлена!',
+                    f'Задача "{task_text}" успешно добавлена {deadline_str}!',
                     reply_markup=ReplyKeyboardRemove()
                 )
         except Exception as e:
