@@ -23,13 +23,13 @@ def init_socketio_todo(app):
 
     @socketio.on('get_todo')
     def get_todo():
-        # try:
-        all_todo = db.session.query(Task).filter(Task.status != 'Выполнено').order_by(nulls_last(Task.deadline)).all()
-        todo = []
-        for do in all_todo:
-            todo.append({'id': do.id,
-                         '': do.deadline.strftime('%d.%m.%Y %H:%M') if do.deadline else None,
-                         'task': do.task})
-        socketio.emit('todo_update', todo)
-        # except Exception as e:
-        #     socketio.emit('error', f"Ошибка: {e}")
+        try:
+            all_todo = db.session.query(Task).filter(Task.status != 'Выполнено').order_by(nulls_last(Task.deadline)).all()
+            todo = []
+            for do in all_todo:
+                todo.append({'id': do.id,
+                             '': do.deadline.strftime('%d.%m.%Y %H:%M') if do.deadline else None,
+                             'task': do.task})
+            socketio.emit('todo_update', todo)
+        except Exception as e:
+            socketio.emit('error', f"Ошибка: {e}")
