@@ -108,10 +108,10 @@ def init_telebot(app):
         help_message = "Вот список всех доступных команд и их описание:"
         comms = [
             ("addtask", "Добавить задачу"),
-            ("addbirthday", "Добавить день рождения"),
-            ("addholiday", "Добавить праздник"),
             ("tasks", "Показать список задач"),
-            ("perform_task", "Выполнить задачу")
+            ("perform_task", "Выполнить задачу"),
+            ("addbirthday", "Добавить день рождения"),
+            ("addholiday", "Добавить праздник")
         ]
         for command, description in comms:
             help_message += f"\n/{command} - {description}"
