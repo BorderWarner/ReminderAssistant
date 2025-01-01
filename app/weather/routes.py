@@ -9,12 +9,13 @@ from flask import (
 from app.database import db
 import requests
 from config import ConfigOWM
-from datetime import datetime, date, timedelta
+from datetime import date, time, datetime
+from app.base_socket import socketio
 
 weather_bp = Blueprint('weather', __name__)
 
 
-def get_weather():
+def get_weather_owm():
     try:
         url = f"http://api.openweathermap.org/data/2.5/forecast?" \
               f"q={ConfigOWM.CITY}&" \
@@ -24,34 +25,48 @@ def get_weather():
         response.raise_for_status()
         if response.status_code == 200:
             data = response.json()
-            forecast = {"today": [], "tomorrow": []}
-            today = date.today()
-            tomorrow = today + timedelta(days=1)
+            forecast = {"current": None, "hourly": []}
+            now = datetime.utcnow()
+            today = now.date()
+
             for entry in data['list']:
                 date_time = datetime.strptime(entry['dt_txt'], "%Y-%m-%d %H:%M:%S")
-                day = date_time.date()
-                time = date_time.time().strftime('%H:%M')
                 temp = entry['main']['temp']
                 description = entry['weather'][0]['description']
                 icon = entry['weather'][0]['icon']
+                wind_speed = entry['wind']['speed']
                 humidity = entry['main']['humidity']
+
                 forecast_entry = {
-                    'time': time,
+                    'time': date_time.time().strftime('%H:%M'),
                     'temp': temp,
                     'description': description,
                     'icon': f"http://openweathermap.org/img/wn/{icon}.png",
+                    'wind_speed': wind_speed,
                     'humidity': humidity
                 }
-                if day == today:
-                    forecast['today'].append(forecast_entry)
-                elif day == tomorrow:
-                    forecast['tomorrow'].append(forecast_entry)
+
+                if date_time.date() == today:
+                    if date_time > now and forecast["current"] is None:
+                        forecast["current"] = forecast_entry
+                    forecast["hourly"].append(forecast_entry)
+
             return forecast
-        return {"today": [], "tomorrow": []}
+        return {"current": None, "hourly": []}
     except requests.exceptions.RequestException:
-        return {"today": [], "tomorrow": []}
+        return {"current": None, "hourly": []}
+
 
 
 @weather_bp.route('/weather')
 def weather():
     return render_template('1.html')
+
+
+@socketio.on('get_weather')
+def get_weather():
+    try:
+        weather = get_weather_owm()
+        socketio.emit('weather_update', weather)
+    except Exception as e:
+        socketio.emit('error', f"Ошибка: {e}")

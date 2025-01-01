@@ -1,0 +1,31 @@
+#weather-container {
+    width: 90%;
+    margin: auto;
+    font-family: Arial, sans-serif;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    background-color: #f9f9f9;
+}
+.weather-upper, .weather-lower {
+    padding: 10px;
+    text-align: center;
+}
+.weather-upper {
+    border-bottom: 1px solid #ccc;
+}
+.weather-upper img {
+    width: 70px;
+    height: 70px;
+}
+.weather-chart {
+    display: flex;
+    justify-content: space-around;
+    flex-wrap: wrap;
+}
+.weather-chart div {
+    text-align: center;
+    width: 50px;
+}
+.weather-chart img {
+    width: 30px;
+}

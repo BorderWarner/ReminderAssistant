@@ -18,15 +18,15 @@ def toDo():
     return render_template('1.html')
 
 
-@socketio.on('get_toDo')
-def get_toDo():
+@socketio.on('get_todo')
+def get_todo():
     try:
-        all_toDo = db.session.query(Task).all()
-        toDo = []
-        for do in all_toDo:
-            toDo.append({'time': do.time,
+        all_todo = db.session.query(Task).all()
+        todo = []
+        for do in all_todo:
+            todo.append({'time': do.time,
                          'task': do.task})
-        socketio.emit('toDo_received', toDo)
+        socketio.emit('todo_update', todo)
     except Exception as e:
         socketio.emit('error', f"Ошибка: {e}")
 

@@ -32,6 +32,6 @@ def handle_disconnect():
 def get_time():
     try:
         current_time = datetime.now().strftime('%H:%M:%S')
-        socketio.emit('get_time', current_time)
+        socketio.emit('time_update', current_time)
     except Exception as e:
         socketio.emit('error', f"Ошибка: {e}")
