@@ -152,7 +152,6 @@ document.addEventListener("DOMContentLoaded", () => {
         data.forEach(task => {
             const div = document.createElement("div");
             div.id = `task_${task.id}`;
-            console.log(task.deadline)
             if (task.deadline) {
                 div.textContent = `${task.task} до ${task.deadline}`;
             } else {
@@ -168,7 +167,6 @@ document.addEventListener("DOMContentLoaded", () => {
         if (taskList) {
             const div = document.createElement("div");
             div.id = `task_${task.id}`;
-            console.log(task.deadline)
             if (task.deadline) {
                 div.textContent = `${task.task} до ${task.deadline}`;
             } else {
@@ -179,7 +177,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     socket.on("delete_task", (data) => {
-        console.log(data)
         const task_id = data.task_id;
         const taskElement = document.getElementById(`task_${task_id}`);
         if (taskElement) {
