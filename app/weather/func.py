@@ -1,6 +1,7 @@
 from datetime import date, time, datetime
 import requests
 from config import ConfigOWM
+from collections import defaultdict
 
 
 def get_forecast_weather():
@@ -37,9 +38,6 @@ def get_forecast_weather():
                 if len(forecast) < 8:
                     forecast.append(forecast_entry)
 
-                # if date_time.date() == today:
-                #     forecast.append(forecast_entry)
-
             return forecast
         return []
     except requests.exceptions.RequestException:
@@ -72,3 +70,45 @@ def get_current_weather():
 
         return current_weather
     return None
+
+
+def get_forecast_weather_details():
+    try:
+        url = f"https://api.openweathermap.org/data/2.5/forecast?" \
+              f"q={ConfigOWM.CITY}&" \
+              f"appid={ConfigOWM.WEATHER_API_KEY}&" \
+              f"units=metric&lang=ru"
+        response = requests.get(url, timeout=5)
+        response.raise_for_status()
+        if response.status_code == 200:
+            data = response.json()
+            grouped_forecasts = defaultdict(list)
+
+            for entry in data['list']:
+                date_time = datetime.strptime(entry['dt_txt'], "%Y-%m-%d %H:%M:%S")
+                hour = date_time.hour
+                day = date_time.date()
+
+                if hour in {6, 12, 18}:
+                    forecast_entry = {
+                        'time': date_time.strftime('%H:%M'),
+                        'temp': entry['main']['temp'],
+                        'description': entry['weather'][0]['description'],
+                        'icon': f"https://openweathermap.org/img/wn/{entry['weather'][0]['icon']}.png",
+                        'wind_speed': entry['wind']['speed'],
+                        'humidity': entry['main']['humidity']
+                    }
+                    grouped_forecasts[day].append(forecast_entry)
+
+            forecast = [
+                {
+                    'day': day.strftime('%d.%m'),
+                    'entries': grouped_forecasts[day]
+                }
+                for day in sorted(grouped_forecasts.keys())
+            ]
+
+            return forecast
+        return []
+    except requests.exceptions.RequestException:
+        return []

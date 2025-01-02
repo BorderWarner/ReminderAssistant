@@ -681,13 +681,13 @@ def init_telebot(app):
                                                                 "bAndHol_details"])
     def handle_manageScr_type(call):
         if call.data == "main":
-            # TODO: переход на главную
+            socketio.emit('manageScr', {'command': 'openMain'})
             bot.answer_callback_query(call.id, f'Главная страница открыта!')
         elif call.data == "weather_details":
-            # TODO: переход к погоде
+            socketio.emit('manageScr', {'command': 'openWeatherDetails'})
             bot.answer_callback_query(call.id, f'Страница погоды открыта!')
         elif call.data == "bAndHol_details":
-            # TODO: переход к праздникам и др
+            socketio.emit('manageScr', {'command': 'openBirthdaysAndHolidaysDetails'})
             bot.answer_callback_query(call.id, f'Страница ДР и праздников открыта!')
 
     # Выход из функционала

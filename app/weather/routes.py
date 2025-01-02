@@ -8,7 +8,7 @@ from flask import (
 )
 from app.database import db
 from config import ConfigOWM
-from app.weather.func import get_forecast_weather, get_current_weather
+from app.weather.func import get_forecast_weather, get_current_weather, get_forecast_weather_details
 
 weather_bp = Blueprint('weather', __name__)
 
@@ -29,5 +29,16 @@ def init_socketio_weather(app):
                 'current': get_current_weather()
             }
             socketio.emit('weather_update', weather_data)
+        except Exception as e:
+            socketio.emit('error', f"Ошибка: {e}")
+
+    @socketio.on('get_weather_details')
+    def get_weather_details():
+        try:
+            weather_data = {
+                'hourly': get_forecast_weather_details(),
+                'current': get_current_weather()
+            }
+            socketio.emit('weather_details_update', weather_data)
         except Exception as e:
             socketio.emit('error', f"Ошибка: {e}")

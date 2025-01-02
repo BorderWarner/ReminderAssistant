@@ -2,6 +2,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const socket = io();
     const contentContainer = document.getElementById("content-container");
 
+    let content_views = 'main';
+
     const views = {
         main: `
             <div id="main-view">
@@ -46,40 +48,35 @@ document.addEventListener("DOMContentLoaded", () => {
             </div>
         `,
         weatherDetails: `
-            <div id="weather-details-view">
-                <h2>Детальный прогноз погоды</h2>
-                <div id="detailed-weather"></div>
-                <button id="back-to-main">Назад</button>
+            <div id="main-view">
+                <div id="current-time" class="d_container">
+                    <div id="time-text"></div>
+                    <div id="day-text"></div>
+                </div>
+                <div id="weather-details-view">
+                    <div id="detailed-weather" class="weather-row"></div>
+                </div>
             </div>
         `,
-        birthdaysDetails: `
-            <div id="birthdays-details-view">
-                <h2>Дни рождения на 30 дней</h2>
-                <ul id="birthday-list"></ul>
-                <button id="back-to-main">Назад</button>
-            </div>
-        `,
-        holidaysDetails: `
-            <div id="holidays-details-view">
-                <h2>Праздники на 30 дней</h2>
-                <ul id="holiday-list"></ul>
-                <button id="back-to-main">Назад</button>
-            </div>
-        `,
-        tasksDetails: `
-            <div id="tasks-details-view">
-                <h2>Список задач по дням</h2>
-                <div id="tasks-grouped"></div>
-                <button id="back-to-main">Назад</button>
+        birthdaysAndHolidaysDetails: `
+            <div id="main-view">
+                <div id="current-time" class="d_container">
+                    <div id="time-text"></div>
+                    <div id="day-text"></div>
+                </div>
+                <div id="hAndBDetails" class="d_container">
+                    <div id="birthdays-details-view">
+                        <div>Дни рождения</div>
+                        <ul id="birthday-list"></ul>
+                    </div>
+                    <div id="holidays-details-view">
+                        <div>Праздники</div>
+                        <ul id="holiday-list"></ul>
+                    </div>
+                </div>
             </div>
         `,
     };
-
-    function renderView(view) {
-        contentContainer.innerHTML = views[view];
-    }
-
-    renderView("main");
 
     // Первичное получение данных
     socket.on('connect', () => {
@@ -131,9 +128,9 @@ document.addEventListener("DOMContentLoaded", () => {
         const birthdaysList = document.getElementById("birthday-list");
         birthdaysList.innerHTML = '';
         data.forEach(birthday => {
-            const li = document.createElement("li");
-            li.textContent = `Дата: ${birthday.date} - Название праздника: ${birthday.name}`;
-            birthdaysList.appendChild(li);
+            const div = document.createElement("div");
+            div.textContent = `${birthday.name} - ${birthday.date}`;
+            birthdaysList.appendChild(div);
         });
     });
 
@@ -141,9 +138,9 @@ document.addEventListener("DOMContentLoaded", () => {
         const holidaysList = document.getElementById("holiday-list");
         holidaysList.innerHTML = '';
         data.forEach(holiday => {
-            const li = document.createElement("li");
-            li.textContent = `Дата: ${holiday.date} - Название праздника: ${holiday.name}`;
-            holidaysList.appendChild(li);
+            const div = document.createElement("div");
+            div.textContent = `${holiday.name} - ${holiday.date}`;
+            holidaysList.appendChild(div);
         });
     });
 
@@ -179,65 +176,143 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Добавление новых данных
     socket.on("new_task", (task) => {
-        const taskList = document.getElementById("task-list");
-        if (taskList) {
-            const div = document.createElement("div");
-            div.id = `task_${task.id}`;
-            if (task.deadline) {
-                div.textContent = `${task.task} до ${task.deadline}`;
-            } else {
-                div.textContent = `${task.task}`;
+        if (content_views === 'main') {
+            const taskList = document.getElementById("task-list");
+            if (taskList) {
+                const div = document.createElement("div");
+                div.id = `task_${task.id}`;
+                if (task.deadline) {
+                    div.textContent = `${task.task} до ${task.deadline}`;
+                } else {
+                    div.textContent = `${task.task}`;
+                }
+                taskList.appendChild(div);
             }
-            taskList.appendChild(div);
         }
     });
 
     socket.on("delete_task", (data) => {
-        const task_id = data.task_id;
-        const taskElement = document.getElementById(`task_${task_id}`);
-        if (taskElement) {
-            taskElement.remove();
+        if (content_views === 'main') {
+            const task_id = data.task_id;
+            const taskElement = document.getElementById(`task_${task_id}`);
+            if (taskElement) {
+                taskElement.remove();
+            }
         }
     });
 
     socket.on("new_purchase", (purchase) => {
-        const shoppList = document.getElementById("shopp-list");
-        if (shoppList) {
-            const div = document.createElement("div");
-            div.id = `purchase_${purchase.id}`;
-            if (purchase.size) {
-                div.textContent = `"${purchase.name}" ${purchase.size} в количестве ${purchase.quantity} шт.`;
-            } else {
-                div.textContent = `"${purchase.name}" в количестве ${purchase.quantity} шт.`;
+        if (content_views === 'main') {
+            const shoppList = document.getElementById("shopp-list");
+            if (shoppList) {
+                const div = document.createElement("div");
+                div.id = `purchase_${purchase.id}`;
+                if (purchase.size) {
+                    div.textContent = `"${purchase.name}" ${purchase.size} в количестве ${purchase.quantity} шт.`;
+                } else {
+                    div.textContent = `"${purchase.name}" в количестве ${purchase.quantity} шт.`;
+                }
+                shoppList.appendChild(div);
             }
-            shoppList.appendChild(div);
         }
     });
 
     socket.on("delete_purchase", (data) => {
-        const purchase_id = data.purchase_id;
-        const purchaseElement = document.getElementById(`purchase_${task_id}`);
-        if (purchaseElement) {
-            purchaseElement.remove();
+        if (content_views === 'main') {
+            const purchase_id = data.purchase_id;
+            const purchaseElement = document.getElementById(`purchase_${purchase_id}`);
+            if (purchaseElement) {
+                purchaseElement.remove();
+            }
         }
     });
+
+    // Переключение страниц
+    function renderView(view) {
+        contentContainer.innerHTML = views[view];
+        if (view === 'main') {
+            socket.emit('get_time');
+            socket.emit('get_weather');
+            socket.emit('get_birthdays');
+            socket.emit('get_holidays');
+            socket.emit('get_todo');
+            socket.emit('get_shopp_list');
+        } else if (view === 'weatherDetails') {
+            socket.emit('get_time');
+            socket.emit('get_weather_details');
+        } else if (view === 'birthdaysAndHolidaysDetails') {
+            socket.emit('get_time');
+            socket.emit('get_bAndH_details');
+        }
+    }
+
+    renderView(content_views);
+
+    socket.on('manageScr', (data) => {
+        handleTelegramCommand(data.command)
+    });
+
+    socket.on('holidays_and_birthdays_details_update', (data) => {
+        const holidaysList = document.getElementById("holiday-list");
+        holidaysList.innerHTML = '';
+        data.holidays.forEach(holiday => {
+            const div = document.createElement("div");
+            div.textContent = `${holiday.name} - ${holiday.date}`;
+            holidaysList.appendChild(div);
+        });
+        const birthdaysList = document.getElementById("birthday-list");
+        birthdaysList.innerHTML = '';
+        data.birthdays.forEach(birthday => {
+            const div = document.createElement("div");
+            div.textContent = `${birthday.name} - ${birthday.date}`;
+            birthdaysList.appendChild(div);
+        });
+    });
+
+    socket.on('weather_details_update', (data) => {
+        const detailedWeatherContainer = document.getElementById('detailed-weather');
+        detailedWeatherContainer.innerHTML = '';
+
+        data.hourly.forEach(dayData => {
+            const dayContainer = document.createElement('div');
+            dayContainer.classList.add('weather-day');
+
+            const dayTitle = document.createElement('h3');
+            dayTitle.textContent = dayData.day;
+            dayContainer.appendChild(dayTitle);
+
+            dayData.entries.forEach(forecast => {
+                const card = document.createElement('div');
+                card.classList.add('weather-card');
+                card.innerHTML = `
+                    <div>${forecast.time}</div>
+                    <img src="${forecast.icon}" alt="${forecast.description}" class="weather-icon">
+                    <div>${forecast.temp}°C</div>
+                    <div>${forecast.description}</div>
+                    <div>Ветер: ${forecast.wind_speed} м/с</div>
+                    <div>Влажность: ${forecast.humidity}%</div>
+                `;
+                dayContainer.appendChild(card);
+            });
+
+            detailedWeatherContainer.appendChild(dayContainer);
+        });
+    });
+
 
     window.handleTelegramCommand = function (command) {
         switch (command) {
             case "openWeatherDetails":
-                renderView("weatherDetails");
+                content_views = 'weatherDetails';
+                renderView(content_views);
                 break;
-            case "openBirthdaysDetails":
-                renderView("birthdaysDetails");
-                break;
-            case "openHolidaysDetails":
-                renderView("holidaysDetails");
-                break;
-            case "opemTasksDetails":
-                renderView("tasksDetails");
+            case "openBirthdaysAndHolidaysDetails":
+                content_views = 'birthdaysAndHolidaysDetails';
+                renderView(content_views);
                 break;
             default:
-                renderView("main");
+                content_views = 'main';
+                renderView(content_views);
         }
     };
 });

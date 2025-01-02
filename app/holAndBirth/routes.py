@@ -47,3 +47,24 @@ def init_socketio_hab(app):
             socketio.emit('holidays_update', holidays)
         except Exception as e:
             socketio.emit('error', f"Ошибка: {e}")
+
+    @socketio.on('get_bAndH_details')
+    def get_bAndH_details():
+        try:
+            all_holidays = db.session.query(Holiday).all()
+            holidays = []
+            for holiday in all_holidays:
+                holidays.append({'date': f'{holiday.day}.'
+                                         f'{holiday.month}.'
+                                         f'{holiday.year}',
+                                 'name': holiday.name})
+            all_birthdays = db.session.query(Birthday).all()
+            birthdays = []
+            for birthday in all_birthdays:
+                birthdays.append({'date': f'{birthday.day}.'
+                                          f'{birthday.month}.'
+                                          f'{birthday.year}',
+                                  'name': birthday.name})
+            socketio.emit('holidays_and_birthdays_details_update', {'holidays': holidays, 'birthdays': birthdays})
+        except Exception as e:
+            socketio.emit('error', f"Ошибка: {e}")

@@ -28,6 +28,21 @@
     overflow: hidden;
 }
 
+#hAndBDetails {
+    width: 98%;
+    height: 75%;
+    flex-direction: row;
+}
+
+#birthdays-details-view, #holidays-details-view {
+    width: 50%;
+    height: 100%;
+}
+
+#birthdays-details-view {
+    border-right: 5px solid #160c03;
+}
+
 #weather-container {
     display: flex;
     flex-direction: row;
@@ -126,4 +141,43 @@
 }
 .weather-chart img {
     width: 50px;
+}
+
+#weather-details-view {
+    height: 75%;
+    width: 95%;
+    display: contents;
+}
+
+.weather-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: stretch;
+    width: 95%;
+    overflow-x: auto;
+    gap: 15px;
+    font-size: 20px;
+}
+
+.weather-day {
+    flex: 0 0 260px;
+    padding: 15px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    text-align: center;
+    color: #ffffff;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+}
+
+.weather-day h3 {
+    margin-bottom: 10px;
+}
+
+.weather-card {
+    margin-bottom: 10px;
+    padding: 10px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 5px;
+    text-align: center;
+    color: #ffffff;
 }
