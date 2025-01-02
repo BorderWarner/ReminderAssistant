@@ -9,6 +9,7 @@ from flask import (
 from sqlalchemy import nulls_last
 from app.database import db
 from app.models import Task
+from datetime import datetime
 
 toDo_bp = Blueprint('toDo', __name__)
 
@@ -26,10 +27,16 @@ def init_socketio_todo(app):
         try:
             all_todo = db.session.query(Task).filter(Task.status != 'Выполнено').order_by(nulls_last(Task.deadline)).all()
             todo = []
+            today = datetime.now()
             for do in all_todo:
+                flag_today = 0
+                if do.deadline:
+                    if today.strftime('%d.%m.%Y') == do.deadline.strftime('%d.%m.%Y'):
+                        flag_today = 1
                 todo.append({'id': do.id,
                              'deadline': do.deadline.strftime('%d.%m.%Y %H:%M') if do.deadline else None,
-                             'task': do.task})
+                             'task': do.task,
+                             'flag_today': flag_today})
             socketio.emit('todo_update', todo)
         except Exception as e:
             socketio.emit('error', f"Ошибка: {e}")

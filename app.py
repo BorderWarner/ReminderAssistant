@@ -2,6 +2,7 @@ from app import create_app
 from app import socketio, scheduler
 import threading
 from app.telegram_bot import run_telegram_bot, init_telebot, stop_telegram_bot
+from app.scheduler_func import start_scheduler_task
 
 
 def run():
@@ -12,6 +13,8 @@ def run():
     bot_thread.start()
 
     scheduler.start()
+
+    start_scheduler_task(app, socketio, scheduler)
 
     try:
         socketio.run(app, host='0.0.0.0', port=5000)

@@ -265,10 +265,17 @@ def init_telebot(app):
                 db.session.commit()
                 db.session.refresh(new_task)
 
+                today = datetime.now()
+                flag_today = 0
+                if new_task.deadline:
+                    if today.strftime('%d.%m.%Y') == new_task.deadline.strftime('%d.%m.%Y'):
+                        flag_today = 1
+
                 socketio.emit('new_task', {'id': new_task.id,
                                            'deadline': new_task.deadline.strftime('%d.%m.%Y %H:%M') if
                                            new_task.deadline else None,
-                                           'task': new_task.task})
+                                           'task': new_task.task,
+                                           'flag_today': flag_today})
 
                 deadline_str = f" с дедлайном {deadline.strftime('%d.%m.%Y %H:%M')}" if deadline else ""
                 bot.reply_to(
@@ -573,6 +580,7 @@ def init_telebot(app):
             bot.register_next_step_handler(call.message, validate_birthday)
         elif call.data == "delete_birthday":
             # TODO: удаление др
+            bot.answer_callback_query(call.id, f'В разработке...')
             pass
         elif call.data == "add_holiday":
             bot.reply_to(
@@ -583,6 +591,7 @@ def init_telebot(app):
             bot.register_next_step_handler(call.message, validate_holiday)
         elif call.data == "delete_holiday":
             # TODO: удаление праздника
+            bot.answer_callback_query(call.id, f'В разработке...')
             pass
 
     def validate_birthday(message):

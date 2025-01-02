@@ -7,9 +7,41 @@ document.addEventListener("DOMContentLoaded", () => {
     const views = {
         main: `
             <div id="main-view">
-                <div id="current-time" class="d_container">
-                    <div id="time-text"></div>
-                    <div id="day-text"></div>
+                <div class="d_container date_time_container">
+                    <div class="left_date_time">
+                        <div class="🤚">
+                            <div class="👉"></div>
+                            <div class="👉"></div>
+                            <div class="👉"></div>
+                            <div class="👉"></div>
+                            <div class="🌴"></div>
+                            <div class="👍"></div>
+                        </div>
+                    </div>
+                    <div id="current-time" class="date_time">
+                        <div id="time-text"></div>
+                        <div id="day-text"></div>
+                    </div>
+                    <div class="right_date_time">
+                        <div aria-label="Orange and tan hamster running in a metal wheel" role="img" class="wheel-and-hamster">
+                            <div class="wheel"></div>
+                            <div class="hamster">
+                                <div class="hamster__body">
+                                    <div class="hamster__head">
+                                        <div class="hamster__ear"></div>
+                                        <div class="hamster__eye"></div>
+                                        <div class="hamster__nose"></div>
+                                    </div>
+                                    <div class="hamster__limb hamster__limb--fr"></div>
+                                    <div class="hamster__limb hamster__limb--fl"></div>
+                                    <div class="hamster__limb hamster__limb--br"></div>
+                                    <div class="hamster__limb hamster__limb--bl"></div>
+                                    <div class="hamster__tail"></div>
+                                </div>
+                            </div>
+                            <div class="spoke"></div>
+                        </div>
+                    </div>
                 </div>
                 <div id="weather-container" class="d_container">
                     <div class="weather-upper">
@@ -26,21 +58,21 @@ document.addEventListener("DOMContentLoaded", () => {
                 <div id="reminder-container" class="d_container">
                     <div id="bAndH">
                         <div id="birthdays-container">
-                            <div>Дни рождения</div>
+                            <div class="header_cont">Дни рождения</div>
                             <ul id="birthday-list"></ul>
                         </div>
                         <div id="holidays-container">
-                            <div>Праздники</div>
+                            <div class="header_cont">Праздники</div>
                             <ul id="holiday-list"></ul>
                         </div>
                     </div>
                     <div id="tAndS">
                         <div id="task-list-container">
-                            <div>Список задач</div>
+                            <div class="header_cont">Список задач</div>
                             <ul id="task-list"></ul>
                         </div>
                         <div id="shopp-list-container">
-                            <div>Список покупок</div>
+                            <div class="header_cont">Список покупок</div>
                             <ul id="shopp-list"></ul>
                         </div>
                     </div>
@@ -99,79 +131,98 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     socket.on("weather_update", (data) => {
-        if (data.current) {
-            document.getElementById("current-temp").textContent = `${data.current.temp}°C`;
-            document.getElementById("current-icon").src = data.current.icon;
-            document.getElementById("current-desc").textContent = data.current.description;
-            document.getElementById("current-wind").textContent = data.current.wind_speed;
-            document.getElementById("current-humidity").textContent = data.current.humidity;
-        }
+        if (content_views === 'main') {
+            if (data.current) {
+                document.getElementById("current-temp").textContent = `${data.current.temp}°C`;
+                document.getElementById("current-icon").src = data.current.icon;
+                document.getElementById("current-desc").textContent = data.current.description;
+                document.getElementById("current-wind").textContent = data.current.wind_speed;
+                document.getElementById("current-humidity").textContent = data.current.humidity;
+            }
 
-        if (data.hourly) {
-            const chart = document.getElementById("weather-chart");
-            chart.innerHTML = '';
+            if (data.hourly) {
+                const chart = document.getElementById("weather-chart");
+                chart.innerHTML = '';
 
-            data.hourly.forEach(entry => {
-                const item = document.createElement("div");
-                item.className = 'weather_hour_card';
-                item.innerHTML = `
-                    <div class="inscription_we">${entry.time}</div>
-                    <img src="${entry.icon}" alt="${entry.description}">
-                    <div class="inscription_we">${entry.temp}°C</div>
-                `;
-                chart.appendChild(item);
-            });
+                data.hourly.forEach(entry => {
+                    const item = document.createElement("div");
+                    item.className = 'weather_hour_card';
+                    item.innerHTML = `
+                        <div class="inscription_we">${entry.time}</div>
+                        <img src="${entry.icon}" alt="${entry.description}">
+                        <div class="inscription_we inscription_temp">${entry.temp}°C</div>
+                    `;
+                    chart.appendChild(item);
+                });
+            }
         }
     });
 
     socket.on('birthdays_update', (data) => {
-        const birthdaysList = document.getElementById("birthday-list");
-        birthdaysList.innerHTML = '';
-        data.forEach(birthday => {
-            const div = document.createElement("div");
-            div.textContent = `${birthday.name} - ${birthday.date}`;
-            birthdaysList.appendChild(div);
-        });
+        if (content_views === 'main') {
+            const birthdaysList = document.getElementById("birthday-list");
+            birthdaysList.innerHTML = '';
+            data.forEach(birthday => {
+                const div = document.createElement("div");
+                if (birthday.flag_today === 1) {
+                    div.className = 'animation_bounce'
+                }
+                div.textContent = `${birthday.name} - ${birthday.date}`;
+                birthdaysList.appendChild(div);
+            });
+        }
     });
 
     socket.on('holidays_update', (data) => {
-        const holidaysList = document.getElementById("holiday-list");
-        holidaysList.innerHTML = '';
-        data.forEach(holiday => {
-            const div = document.createElement("div");
-            div.textContent = `${holiday.name} - ${holiday.date}`;
-            holidaysList.appendChild(div);
-        });
+        if (content_views === 'main') {
+            const holidaysList = document.getElementById("holiday-list");
+            holidaysList.innerHTML = '';
+            data.forEach(holiday => {
+                const div = document.createElement("div");
+                if (holiday.flag_today === 1) {
+                    div.className = 'animation_bounce'
+                }
+                div.textContent = `${holiday.name} - ${holiday.date}`;
+                holidaysList.appendChild(div);
+            });
+        }
     });
 
     socket.on('todo_update', (data) => {
-        const taskList = document.getElementById("task-list");
-        taskList.innerHTML = '';
-        data.forEach(task => {
-            const div = document.createElement("div");
-            div.id = `task_${task.id}`;
-            if (task.deadline) {
-                div.textContent = `${task.task} до ${task.deadline}`;
-            } else {
-                div.textContent = `${task.task}`;
-            }
-            taskList.appendChild(div);
-        });
+        if (content_views === 'main') {
+            const taskList = document.getElementById("task-list");
+            taskList.innerHTML = '';
+            data.forEach(task => {
+                const div = document.createElement("div");
+                if (task.flag_today === 1) {
+                    div.className = 'animation_bounce'
+                }
+                div.id = `task_${task.id}`;
+                if (task.deadline) {
+                    div.textContent = `${task.task} до ${task.deadline}`;
+                } else {
+                    div.textContent = `${task.task}`;
+                }
+                taskList.appendChild(div);
+            });
+        }
     });
 
     socket.on('shopp_list_update', (data) => {
-        const shoppList = document.getElementById("shopp-list");
-        shoppList.innerHTML = '';
-        data.forEach(purchase => {
-            const div = document.createElement("div");
-            div.id = `purchase_${purchase.id}`;
-            if (purchase.size) {
-                div.textContent = `"${purchase.name}" ${purchase.size} в количестве ${purchase.quantity} шт.`;
-            } else {
-                div.textContent = `"${purchase.name}" в количестве ${purchase.quantity} шт.`;
-            }
-            shoppList.appendChild(div);
-        });
+        if (content_views === 'main') {
+            const shoppList = document.getElementById("shopp-list");
+            shoppList.innerHTML = '';
+            data.forEach(purchase => {
+                const div = document.createElement("div");
+                div.id = `purchase_${purchase.id}`;
+                if (purchase.size) {
+                    div.textContent = `"${purchase.name}" ${purchase.size} в количестве ${purchase.quantity} шт.`;
+                } else {
+                    div.textContent = `"${purchase.name}" в количестве ${purchase.quantity} шт.`;
+                }
+                shoppList.appendChild(div);
+            });
+        }
     });
 
     // Добавление новых данных
@@ -180,6 +231,9 @@ document.addEventListener("DOMContentLoaded", () => {
             const taskList = document.getElementById("task-list");
             if (taskList) {
                 const div = document.createElement("div");
+                if (task.flag_today === 1) {
+                    div.className = 'animation_bounce'
+                }
                 div.id = `task_${task.id}`;
                 if (task.deadline) {
                     div.textContent = `${task.task} до ${task.deadline}`;
