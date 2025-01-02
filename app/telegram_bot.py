@@ -108,39 +108,92 @@ def init_telebot(app):
     def send_help(message):
         help_message = "Вот список всех доступных команд и их описание:"
         comms = [
-            ("addtask", "Добавить задачу"),
-            ("tasks", "Показать список задач"),
-            ("perform_task", "Выполнить задачу"),
-            ("addpurchase", "Добавить товар в список покупок"),
-            ("purchases", "Показать список покупок"),
-            ("delete_purchase", "Убрать из покупок"),
-            ("addbirthday", "Добавить день рождения"),
-            ("addholiday", "Добавить праздник")
+            ("manageScr", "Управление экраном"),
+            ("task", "Управление задачами"),
+            ("purchases", "Управление списком покупок"),
+            ("bAndHol", "Управление праздниками и др")
         ]
         for command, description in comms:
             help_message += f"\n/{command} - {description}"
 
         bot.send_message(message.chat.id, help_message, reply_markup=generate_commands_keyboard(comms))
 
-    @bot.message_handler(commands=['addtask'])
+    @bot.message_handler(commands=['task'])
     @authorized_users_only
-    def add_task_start(message):
+    def task_start(message):
         bot.reply_to(
             message,
-            "С помощью этой команды можно добавить задачу. Укажите, нужна ли задача с дедлайном.",
-            reply_markup=task_type_buttons()
-        )
-        bot.send_message(
-            message.chat.id,
-            "Для выхода нажмите 'Отмена'.",
-            reply_markup=cancel_button()
+            "Вы попали в меню управления задачами, выберите нужно действие.",
+            reply_markup=task_actions_buttons()
         )
 
-    def task_type_buttons():
-        """Кнопки для выбора типа задачи."""
+    def task_actions_buttons():
         keyboard = InlineKeyboardMarkup()
         keyboard.add(
-            InlineKeyboardButton("С дедлайном", callback_data="task_with_deadline"),
+            InlineKeyboardButton("Добавить", callback_data="add_task")
+        )
+        keyboard.add(
+            InlineKeyboardButton("Выполнить", callback_data="perform_task")
+        )
+        keyboard.add(
+            InlineKeyboardButton("Показать все", callback_data="show_tasks")
+        )
+        return keyboard
+
+    @bot.callback_query_handler(func=lambda call: call.data in ["add_task", "perform_task", "show_tasks"])
+    def handle_task_type(call):
+        if call.data == "add_task":
+            bot.reply_to(
+                call.message,
+                "С помощью этой команды можно добавить задачу. Укажите, нужна ли задача с дедлайном.",
+                reply_markup=task_type_buttons()
+            )
+            bot.send_message(
+                call.message.chat.id,
+                "Для выхода нажмите 'Отмена'.",
+                reply_markup=cancel_button()
+            )
+        elif call.data == "perform_task":
+            try:
+                with app.app_context():
+                    tasks = db.session.query(Task).filter(Task.status != 'Выполнено').all()
+                    if not tasks:
+                        bot.reply_to(call.message, "Нет невыполненных задач.")
+                        return
+
+                    keyboard = []
+                    for task in tasks:
+                        button = InlineKeyboardButton(task.task,
+                                                      callback_data=f'perform_task_{task.id}')
+                        keyboard.append([button])
+
+                    reply_markup = InlineKeyboardMarkup(keyboard)
+                    bot.reply_to(call.message, "Выберите задачу для выполнения:", reply_markup=reply_markup)
+            except Exception as e:
+                bot.reply_to(call.message, f"Ошибка: {e}")
+        elif call.data == "show_tasks":
+            try:
+                with app.app_context():
+                    tasks = db.session.query(Task).filter(Task.status != 'Выполнено').all()
+                    if not tasks:
+                        bot.reply_to(call.message, "Нет задач.")
+                        return
+
+                    tasks_list = "\n".join([f"- {task.task}" for task in tasks])
+
+                    bot.send_message(
+                        call.message.chat.id,
+                        f"Вот список всех невыполненных задач:\n{tasks_list}",
+                    )
+            except Exception as e:
+                bot.reply_to(call.message, f"Ошибка: {e}")
+
+    def task_type_buttons():
+        keyboard = InlineKeyboardMarkup()
+        keyboard.add(
+            InlineKeyboardButton("С дедлайном", callback_data="task_with_deadline")
+        )
+        keyboard.add(
             InlineKeyboardButton("Без дедлайна", callback_data="task_without_deadline")
         )
         return keyboard
@@ -230,48 +283,6 @@ def init_telebot(app):
                 reply_markup=ReplyKeyboardRemove()
             )
 
-    @bot.message_handler(commands=['tasks'])
-    @authorized_users_only
-    def list_all_tasks(message):
-        try:
-            with app.app_context():
-                tasks = db.session.query(Task).filter(Task.status != 'Выполнено').all()
-                if not tasks:
-                    bot.reply_to(message, "Нет задач.")
-                    return
-
-                tasks_list = "\n".join([f"- {task.task}" for task in tasks])
-
-                bot.send_message(
-                    message.chat.id,
-                    f"Вот список всех невыполненных задач:\n{tasks_list}",
-                )
-
-        except Exception as e:
-            bot.reply_to(message, f"Ошибка: {e}")
-
-    @bot.message_handler(commands=['perform_task'])
-    @authorized_users_only
-    def list_tasks_with_buttons(message):
-        try:
-            with app.app_context():
-                tasks = db.session.query(Task).filter(Task.status != 'Выполнено').all()
-                if not tasks:
-                    bot.reply_to(message, "Нет невыполненных задач.")
-                    return
-
-                keyboard = []
-                for task in tasks:
-                    button = InlineKeyboardButton(task.task,
-                                                  callback_data=f'perform_task_{task.id}')
-                    keyboard.append([button])
-
-                reply_markup = InlineKeyboardMarkup(keyboard)
-                bot.reply_to(message, "Выберите задачу для выполнения:", reply_markup=reply_markup)
-
-        except Exception as e:
-            bot.reply_to(message, f"Ошибка: {e}")
-
     @bot.callback_query_handler(func=lambda call: call.data.startswith('perform_task_'))
     @authorized_users_only
     def perform_task_callback(call):
@@ -303,25 +314,86 @@ def init_telebot(app):
         except Exception as e:
             bot.answer_callback_query(call.id, f"Ошибка при выполнении задачи: {e}")
 
-    @bot.message_handler(commands=['addpurchase'])
+    @bot.message_handler(commands=['purchases'])
     @authorized_users_only
-    def add_purchase_start(message):
+    def purchases_start(message):
         bot.reply_to(
             message,
-            "С помощью этой команды можно добавить товар в список покупок. Укажите, нужен ли объема/размер товара.",
-            reply_markup=purchase_type_buttons()
+            "Вы попали в меню управления списком покупок, выберите нужно действие.",
+            reply_markup=purchases_actions_buttons()
         )
-        bot.send_message(
-            message.chat.id,
-            "Для выхода нажмите 'Отмена'.",
-            reply_markup=cancel_button()
+
+    def purchases_actions_buttons():
+        keyboard = InlineKeyboardMarkup()
+        keyboard.add(
+            InlineKeyboardButton("Добавить", callback_data="add_purchase")
         )
+        keyboard.add(
+            InlineKeyboardButton("Удалить", callback_data="delete_purchase")
+        )
+        keyboard.add(
+            InlineKeyboardButton("Показать все", callback_data="show_purchases")
+        )
+        return keyboard
+
+    @bot.callback_query_handler(func=lambda call: call.data in ["add_purchase", "delete_purchase", "show_purchases"])
+    def handle_purchase_type(call):
+        if call.data == "add_purchase":
+            bot.reply_to(
+                call.message,
+                "С помощью этой команды можно добавить товар в список покупок. Укажите, нужен ли объема/размер товара.",
+                reply_markup=purchase_type_buttons()
+            )
+            bot.send_message(
+                call.message.chat.id,
+                "Для выхода нажмите 'Отмена'.",
+                reply_markup=cancel_button()
+            )
+        elif call.data == "delete_purchase":
+            try:
+                with app.app_context():
+                    purchases = db.session.query(Purchase).filter(Purchase.status != 'Куплено').all()
+                    if not purchases:
+                        bot.reply_to(call.message, "Список покупок пуст.")
+                        return
+
+                    keyboard = []
+                    for purchase in purchases:
+                        button = InlineKeyboardButton(purchase.name, callback_data=f'delete_purchase_{purchase.id}')
+                        keyboard.append([button])
+
+                    reply_markup = InlineKeyboardMarkup(keyboard)
+                    bot.reply_to(call.message, "Выберите товар для удаления:", reply_markup=reply_markup)
+
+            except Exception as e:
+                bot.reply_to(call.message, f"Ошибка: {e}")
+        elif call.data == "show_purchases":
+            try:
+                with app.app_context():
+                    purchases = db.session.query(Purchase).filter(Purchase.status != 'Куплено').all()
+                    if not purchases:
+                        bot.reply_to(call.message, "Список покупок пуст.")
+                        return
+
+                    purchase_list = "\n".join([
+                        f" ◦ {purchase.name} {'(' + purchase.size + ') ' if purchase.size else ''}- {purchase.quantity} шт."
+                        for purchase in purchases
+                    ])
+
+                    bot.send_message(
+                        call.message.chat.id,
+                        f"Список покупок:\n{purchase_list}",
+                    )
+            except Exception as e:
+                bot.reply_to(call.message, f"Ошибка: {e}")
 
     def purchase_type_buttons():
         """Кнопки для выбора типа покупки."""
         keyboard = InlineKeyboardMarkup()
         keyboard.add(
-            InlineKeyboardButton("С указанием объема", callback_data="purchase_with_size"),
+            InlineKeyboardButton("С указанием объема", callback_data="purchase_with_size")
+        )
+        keyboard.add(
             InlineKeyboardButton("Без указания объема", callback_data="purchase_without_size")
         )
         return keyboard
@@ -434,49 +506,6 @@ def init_telebot(app):
                 reply_markup=ReplyKeyboardRemove()
             )
 
-    @bot.message_handler(commands=['purchases'])
-    @authorized_users_only
-    def list_all_purchases(message):
-        try:
-            with app.app_context():
-                purchases = db.session.query(Purchase).filter(Purchase.status != 'Куплено').all()
-                if not purchases:
-                    bot.reply_to(message, "Список покупок пуст.")
-                    return
-
-                purchase_list = "\n".join([
-                    f" ◦ {purchase.name} {'(' + purchase.size + ') ' if purchase.size else ''}- {purchase.quantity} шт."
-                    for purchase in purchases
-                ])
-
-                bot.send_message(
-                    message.chat.id,
-                    f"Список покупок:\n{purchase_list}",
-                )
-        except Exception as e:
-            bot.reply_to(message, f"Ошибка: {e}")
-
-    @bot.message_handler(commands=['delete_purchase'])
-    @authorized_users_only
-    def list_purchases_with_buttons(message):
-        try:
-            with app.app_context():
-                purchases = db.session.query(Purchase).filter(Purchase.status != 'Куплено').all()
-                if not purchases:
-                    bot.reply_to(message, "Список покупок пуст.")
-                    return
-
-                keyboard = []
-                for purchase in purchases:
-                    button = InlineKeyboardButton(purchase.name, callback_data=f'delete_purchase_{purchase.id}')
-                    keyboard.append([button])
-
-                reply_markup = InlineKeyboardMarkup(keyboard)
-                bot.reply_to(message, "Выберите товар для удаления:", reply_markup=reply_markup)
-
-        except Exception as e:
-            bot.reply_to(message, f"Ошибка: {e}")
-
     @bot.callback_query_handler(func=lambda call: call.data.startswith('delete_purchase_'))
     @authorized_users_only
     def delete_purchase_callback(call):
@@ -507,15 +536,54 @@ def init_telebot(app):
         except Exception as e:
             bot.answer_callback_query(call.id, f"Ошибка при удалении: {e}")
 
-    @bot.message_handler(commands=['addbirthday'])
+    @bot.message_handler(commands=['bAndHol'])
     @authorized_users_only
-    def add_birthday_prompt(message):
+    def bAndHol_start(message):
         bot.reply_to(
             message,
-            "Введите день рождения в формате: Имя, ДД.ММ.ГГГГ (или нажмите 'Отмена').",
-            reply_markup=cancel_button()
+            "Вы попали в меню управления праздниками и днями рождений, выберите нужно действие.",
+            reply_markup=bAndHol_actions_buttons()
         )
-        bot.register_next_step_handler(message, validate_birthday)
+
+    def bAndHol_actions_buttons():
+        keyboard = InlineKeyboardMarkup()
+        keyboard.add(
+            InlineKeyboardButton("Добавить др", callback_data="add_birthday")
+        )
+        keyboard.add(
+            InlineKeyboardButton("Удалить др", callback_data="delete_birthday")
+        )
+        keyboard.add(
+            InlineKeyboardButton("Добавить праздник", callback_data="add_holiday")
+        )
+        keyboard.add(
+            InlineKeyboardButton("Удалить праздник", callback_data="delete_holiday")
+        )
+        return keyboard
+
+    @bot.callback_query_handler(func=lambda call: call.data in ["add_birthday", "delete_birthday",
+                                                                "add_holiday", "delete_holiday"])
+    def handle_bAndHol_type(call):
+        if call.data == "add_birthday":
+            bot.reply_to(
+                call.message,
+                "Введите день рождения в формате: Имя, ДД.ММ.ГГГГ (или нажмите 'Отмена').",
+                reply_markup=cancel_button()
+            )
+            bot.register_next_step_handler(call.message, validate_birthday)
+        elif call.data == "delete_birthday":
+            # TODO: удаление др
+            pass
+        elif call.data == "add_holiday":
+            bot.reply_to(
+                call.message,
+                "Введите праздник в формате: Название, ДД.ММ.ГГГГ (или нажмите 'Отмена').",
+                reply_markup=cancel_button()
+            )
+            bot.register_next_step_handler(call.message, validate_holiday)
+        elif call.data == "delete_holiday":
+            # TODO: удаление праздника
+            pass
 
     def validate_birthday(message):
         if message.text.strip().lower() == "отмена":
@@ -552,16 +620,6 @@ def init_telebot(app):
         except Exception as e:
             bot.reply_to(message, f"Ошибка: {e}")
 
-    @bot.message_handler(commands=['addholiday'])
-    @authorized_users_only
-    def add_holiday_prompt(message):
-        bot.reply_to(
-            message,
-            "Введите праздник в формате: Название, ДД.ММ.ГГГГ (или нажмите 'Отмена').",
-            reply_markup=cancel_button()
-        )
-        bot.register_next_step_handler(message, validate_holiday)
-
     def validate_holiday(message):
         if message.text.strip().lower() == "отмена":
             cancel_process(message)
@@ -596,6 +654,41 @@ def init_telebot(app):
                 )
         except Exception as e:
             bot.reply_to(message, f"Ошибка: {e}")
+
+    @bot.message_handler(commands=['manageScr'])
+    @authorized_users_only
+    def manageScr_start(message):
+        bot.reply_to(
+            message,
+            "Вы попали в меню управления экраном, выберите нужно действие.",
+            reply_markup=manageScr_actions_buttons()
+        )
+
+    def manageScr_actions_buttons():
+        keyboard = InlineKeyboardMarkup()
+        keyboard.add(
+            InlineKeyboardButton("Вернуться на главную", callback_data="main")
+        )
+        keyboard.add(
+            InlineKeyboardButton("Погода на неделю", callback_data="weather_details")
+        )
+        keyboard.add(
+            InlineKeyboardButton("ДР и праздники", callback_data="bAndHol_details")
+        )
+        return keyboard
+
+    @bot.callback_query_handler(func=lambda call: call.data in ["main", "weather_details",
+                                                                "bAndHol_details"])
+    def handle_manageScr_type(call):
+        if call.data == "main":
+            # TODO: переход на главную
+            bot.answer_callback_query(call.id, f'Главная страница открыта!')
+        elif call.data == "weather_details":
+            # TODO: переход к погоде
+            bot.answer_callback_query(call.id, f'Страница погоды открыта!')
+        elif call.data == "bAndHol_details":
+            # TODO: переход к праздникам и др
+            bot.answer_callback_query(call.id, f'Страница ДР и праздников открыта!')
 
     # Выход из функционала
     def cancel_process(message):
