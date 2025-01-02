@@ -59,21 +59,21 @@ document.addEventListener("DOMContentLoaded", () => {
                     <div id="bAndH">
                         <div id="birthdays-container">
                             <div class="header_cont">Дни рождения</div>
-                            <ul id="birthday-list"></ul>
+                            <div id="birthday-list" class="list"></div>
                         </div>
                         <div id="holidays-container">
                             <div class="header_cont">Праздники</div>
-                            <ul id="holiday-list"></ul>
+                            <div id="holiday-list" class="list"></div>
                         </div>
                     </div>
                     <div id="tAndS">
                         <div id="task-list-container">
                             <div class="header_cont">Список задач</div>
-                            <ul id="task-list"></ul>
+                            <div id="task-list" class="list"></div>
                         </div>
                         <div id="shopp-list-container">
                             <div class="header_cont">Список покупок</div>
-                            <ul id="shopp-list"></ul>
+                            <div id="shopp-list" class="list"></div>
                         </div>
                     </div>
                 </div>
@@ -99,11 +99,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 <div id="hAndBDetails" class="d_container">
                     <div id="birthdays-details-view">
                         <div>Дни рождения</div>
-                        <ul id="birthday-list"></ul>
+                        <div id="birthday-list" class="list"></div>
                     </div>
                     <div id="holidays-details-view">
                         <div>Праздники</div>
-                        <ul id="holiday-list"></ul>
+                        <div id="holiday-list" class="list"></div>
                     </div>
                 </div>
             </div>

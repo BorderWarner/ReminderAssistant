@@ -4,7 +4,8 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    background-color: #160c03;
+    background-color: #e7ae7a;
+    /*background-color: #160c03;*/
     font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
     font-size: 25px;
     color: #160c03;
@@ -17,13 +18,14 @@
     height: auto;
     min-height: 220px;
     margin-bottom: 20px;
-    background: rgb(241, 128, 20);
+    background: #e7ae7a;
+    /*background: rgb(241, 128, 20);*/
     border-radius: 15px;
     display: flex;
     justify-content: center;
     position: relative;
     flex-direction: column;
-    background: linear-gradient(to right, rgb(192, 115, 45), rgb(238, 185, 136));
+    /*background: linear-gradient(to right, rgb(192, 115, 45), rgb(238, 185, 136));*/
     transition: all 0.3s ease-in-out;
     overflow: hidden;
 }
@@ -42,6 +44,11 @@
     display: flex;
     align-items: center;
     justify-content: center;
+}
+
+.date_time {
+    /*background: rgba(255, 255, 255, 0.1);*/
+    /*border-radius: 15px;*/
 }
 
 #time-text, #day-text, #current-temp, .header_cont {
@@ -68,7 +75,21 @@
 }
 
 .header_cont {
+    height: 20%;
     font-size: 2rem;
+    text-decoration: underline;
+    text-underline-offset: 8px;
+    align-content: center;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+
+
+.list {
+    height: 80%;
+    margin: 0;
+    padding: 10px 0;
+    background: rgba(255, 255, 255, 0.2);
 }
 
 #hAndBDetails {
@@ -83,7 +104,7 @@
 }
 
 #birthdays-details-view {
-    border-right: 5px solid #160c03;
+    /*border-right: 5px solid #160c03;*/
 }
 
 #weather-container {
@@ -91,6 +112,7 @@
     flex-direction: row;
     justify-content: space-evenly;
     height: 25%;
+    background: rgba(255, 255, 255, 0.1);
 }
 
 #bAndH, #tAndS {
@@ -105,21 +127,22 @@
 #birthdays-container, #holidays-container{
     width: 50%;
     height: 100%;
-    border-bottom: 5px solid #160c03;
+    clip-path: content-box;
+    /*border-bottom: 5px solid #160c03;*/
 }
 
 #birthdays-container {
-    border-right: 5px solid #160c03;
+    /*border-right: 5px solid #160c03;*/
 }
 
 #task-list-container, #shopp-list-container{
     width: 50%;
     height: 100%;
-    border-bottom: 5px solid #160c03;
+    /*border-bottom: 5px solid #160c03;*/
 }
 
 #task-list-container {
-    border-right: 5px solid #160c03;
+    /*border-right: 5px solid #160c03;*/
 }
 
 #reminder-container {
@@ -143,6 +166,9 @@
 
 #current-temp {
     font-size: 60px;
+    /*background: rgba(255, 255, 255, 0.2);*/
+    /*border-radius: 15px;*/
+    padding: 5px;
 }
 .weather-upper, .weather-lower {
     text-align: center;
@@ -156,7 +182,9 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    border-right: 5px solid #160c03;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 15px;
+    /*border-right: 5px solid #160c03;*/
 }
 .weather-upper img {
     width: 70px;
@@ -174,12 +202,15 @@
     text-align: center;
     padding: 5px;
     margin: 5px;
-    border: 2px solid #160c03;
+    /*border: 2px solid #160c03;*/
     border-radius: 10px;
     font-size: 35px;
+    background: rgba(255, 255, 255, 0.1);
 }
 .inscription_we {
     border: none;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 5px;
 }
 .weather-chart img {
     width: 50px;
@@ -207,8 +238,6 @@
     background: rgba(255, 255, 255, 0.1);
     border-radius: 10px;
     text-align: center;
-    color: #ffffff;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
 }
 
 .weather-day h3 {
@@ -221,5 +250,4 @@
     background: rgba(255, 255, 255, 0.2);
     border-radius: 5px;
     text-align: center;
-    color: #ffffff;
 }
