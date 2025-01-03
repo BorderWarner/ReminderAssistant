@@ -345,6 +345,8 @@ def init_telebot(app):
     @authorized_users_only
     def perform_task_callback(call):
         try:
+            clear_user_state(call.from_user.id)
+
             task_id = int(call.data.split('_')[2])
             with app.app_context():
                 task = Task.query.get(task_id)
@@ -361,8 +363,6 @@ def init_telebot(app):
 
                 socketio.emit('delete_task', {'task_id': task.id})
 
-                clear_user_state(call.from_user.id)
-
                 bot.answer_callback_query(call.id, f'Задача {task.task} выполнена!')
 
                 bot.edit_message_text(
@@ -377,6 +377,7 @@ def init_telebot(app):
     @bot.message_handler(commands=['purchases'])
     @authorized_users_only
     def purchases_start(message):
+        clear_user_state(message.from_user.id)
         bot.reply_to(
             message,
             "Вы попали в меню управления списком покупок, выберите нужно действие.",
@@ -398,7 +399,15 @@ def init_telebot(app):
 
     @bot.callback_query_handler(func=lambda call: call.data in ["add_purchase", "delete_purchase", "show_purchases"])
     def handle_purchase_type(call):
+        user_id = call.from_user.id
+        current_state = get_user_state(user_id)
+
+        if current_state:
+            bot.reply_to(call.message, "Завершите текущую операцию перед началом новой.")
+            return
+
         if call.data == "add_purchase":
+            set_user_state(user_id, "add_purchase")
             bot.reply_to(
                 call.message,
                 "С помощью этой команды можно добавить товар в список покупок. Укажите, нужен ли объема/размер товара.",
@@ -410,6 +419,7 @@ def init_telebot(app):
                 reply_markup=cancel_button()
             )
         elif call.data == "delete_purchase":
+            set_user_state(user_id, "delete_purchase")
             try:
                 with app.app_context():
                     purchases = db.session.query(Purchase).filter(Purchase.status != 'Куплено').all()
@@ -428,6 +438,7 @@ def init_telebot(app):
             except Exception as e:
                 bot.reply_to(call.message, f"Ошибка: {e}")
         elif call.data == "show_purchases":
+            set_user_state(user_id, "delete_purchase")
             try:
                 with app.app_context():
                     purchases = db.session.query(Purchase).filter(Purchase.status != 'Куплено').all()
@@ -448,7 +459,6 @@ def init_telebot(app):
                 bot.reply_to(call.message, f"Ошибка: {e}")
 
     def purchase_type_buttons():
-        """Кнопки для выбора типа покупки."""
         keyboard = InlineKeyboardMarkup()
         keyboard.add(
             InlineKeyboardButton("С указанием объема", callback_data="purchase_with_size")
@@ -458,10 +468,11 @@ def init_telebot(app):
         )
         return keyboard
 
-    @bot.callback_query_handler(func=lambda call: call.data in ["purchase_with_size", "purchase_without_size"])
+    @bot.callback_query_handler(func=lambda call: call.data in ["purchase_with_size", "purchase_without_size"] and (get_user_state(call.from_user.id) == "add_purchase"))
     @authorized_users_only
     def handle_purchase_type(call):
         if call.data == "purchase_with_size":
+            set_user_state(call.from_user.id, "purchase_with_size")
             bot.send_message(
                 call.message.chat.id,
                 "Введите объем/размер товара или нажмите 'Отмена'.",
@@ -469,6 +480,7 @@ def init_telebot(app):
             )
             bot.register_next_step_handler(call.message, validate_size)
         elif call.data == "purchase_without_size":
+            set_user_state(call.from_user.id, "purchase_without_size")
             bot.send_message(
                 call.message.chat.id,
                 "Введите название товара или нажмите 'Отмена'.",
@@ -477,11 +489,18 @@ def init_telebot(app):
             bot.register_next_step_handler(call.message, validate_purchase)
 
     def validate_size(message):
-        """Проверяет введённый размер и переходит к названию покупки."""
+        user_id = message.from_user.id
+        current_state = get_user_state(user_id)
+
+        if current_state != 'purchase_with_size':
+            bot.reply_to(message, "Завершите текущую операцию перед началом новой.")
+            return
+
         if message.text.strip().lower() == "отмена":
             cancel_process(message)
             return
 
+        set_user_state(message.from_user.id, "purchase_without_size")
         size = message.text.strip()
         bot.reply_to(
             message,
@@ -491,7 +510,13 @@ def init_telebot(app):
         bot.register_next_step_handler(message, lambda msg: validate_purchase(msg, size=size))
 
     def validate_purchase(message, size=None):
-        """Проверяет название покупки и запрашивает количество."""
+        user_id = message.from_user.id
+        current_state = get_user_state(user_id)
+
+        if current_state != 'purchase_without_size':
+            bot.reply_to(message, "Завершите текущую операцию перед началом новой.")
+            return
+
         if message.text.strip().lower() == "отмена":
             cancel_process(message)
             return
@@ -505,6 +530,7 @@ def init_telebot(app):
             bot.register_next_step_handler(message, lambda msg: validate_purchase(msg, size=size))
             return
 
+        set_user_state(message.from_user.id, "purchase_quantity")
         name = message.text.strip()
         bot.reply_to(
             message,
@@ -514,7 +540,13 @@ def init_telebot(app):
         bot.register_next_step_handler(message, lambda msg: validate_quantity(msg, name=name, size=size))
 
     def validate_quantity(message, name, size=None):
-        """Проверяет введённое количество и сохраняет покупку."""
+        user_id = message.from_user.id
+        current_state = get_user_state(user_id)
+
+        if current_state != 'purchase_quantity':
+            bot.reply_to(message, "Завершите текущую операцию перед началом новой.")
+            return
+
         if message.text.strip().lower() == "отмена":
             cancel_process(message)
             return
@@ -525,6 +557,7 @@ def init_telebot(app):
                 raise ValueError("Количество должно быть положительным числом.")
 
             save_purchase(message, name, size, quantity)
+            clear_user_state(message.from_user.id)
         except ValueError:
             bot.reply_to(
                 message,
@@ -534,7 +567,6 @@ def init_telebot(app):
             bot.register_next_step_handler(message, lambda msg: validate_quantity(msg, name=name, size=size))
 
     def save_purchase(message, name, size, quantity):
-        """Сохраняет покупку в базе данных."""
         try:
             with app.app_context():
                 new_purchase = Purchase(
@@ -566,10 +598,12 @@ def init_telebot(app):
                 reply_markup=ReplyKeyboardRemove()
             )
 
-    @bot.callback_query_handler(func=lambda call: call.data.startswith('delete_purchase_'))
+    @bot.callback_query_handler(func=lambda call: call.data.startswith('delete_purchase_') and (get_user_state(call.from_user.id) == "delete_purchase"))
     @authorized_users_only
     def delete_purchase_callback(call):
         try:
+            clear_user_state(call.from_user.id)
+
             purchase_id = int(call.data.split('_')[2])
             with app.app_context():
                 purchase = Purchase.query.get(purchase_id)
@@ -599,6 +633,7 @@ def init_telebot(app):
     @bot.message_handler(commands=['bAndHol'])
     @authorized_users_only
     def bAndHol_start(message):
+        clear_user_state(message.from_user.id)
         bot.reply_to(
             message,
             "Вы попали в меню управления праздниками и днями рождений, выберите нужно действие.",
@@ -624,7 +659,15 @@ def init_telebot(app):
     @bot.callback_query_handler(func=lambda call: call.data in ["add_birthday", "delete_birthday",
                                                                 "add_holiday", "delete_holiday"])
     def handle_bAndHol_type(call):
+        user_id = call.from_user.id
+        current_state = get_user_state(user_id)
+
+        if current_state:
+            bot.reply_to(call.message, "Завершите текущую операцию перед началом новой.")
+            return
+
         if call.data == "add_birthday":
+            set_user_state(user_id, "add_birthday")
             bot.reply_to(
                 call.message,
                 "Введите день рождения в формате: Имя, ДД.ММ.ГГГГ (или нажмите 'Отмена').",
@@ -632,6 +675,7 @@ def init_telebot(app):
             )
             bot.register_next_step_handler(call.message, validate_birthday)
         elif call.data == "delete_birthday":
+            set_user_state(user_id, "delete_birthday")
             bot.reply_to(
                 call.message,
                 "Введите имя человека для удаления ДР или нажмите 'Отмена').",
@@ -639,6 +683,7 @@ def init_telebot(app):
             )
             bot.register_next_step_handler(call.message, delete_birthday)
         elif call.data == "add_holiday":
+            set_user_state(user_id, "add_holiday")
             bot.reply_to(
                 call.message,
                 "Введите праздник в формате: Название, ДД.ММ.ГГГГ (или нажмите 'Отмена').",
@@ -646,6 +691,7 @@ def init_telebot(app):
             )
             bot.register_next_step_handler(call.message, validate_holiday)
         elif call.data == "delete_holiday":
+            set_user_state(user_id, "delete_holiday")
             bot.reply_to(
                 call.message,
                 "Введите название праздника для удаления или нажмите 'Отмена').",
@@ -654,9 +700,17 @@ def init_telebot(app):
             bot.register_next_step_handler(call.message, delete_holiday)
 
     def validate_birthday(message):
+        user_id = message.from_user.id
+        current_state = get_user_state(user_id)
+
+        if current_state != 'add_birthday':
+            bot.reply_to(message, "Завершите текущую операцию перед началом новой.")
+            return
+
         if message.text.strip().lower() == "отмена":
             cancel_process(message)
             return
+
         try:
             name, date = [x.strip() for x in message.text.split(',')]
             day, month, *year = map(int, date.split('.'))
@@ -666,6 +720,7 @@ def init_telebot(app):
                 datetime(1900, month, day)
 
             save_birthday(name, day, month, year[0] if year else None, message)
+            clear_user_state(message.from_user.id)
         except (ValueError, IndexError):
             bot.reply_to(
                 message,
@@ -689,6 +744,13 @@ def init_telebot(app):
             bot.reply_to(message, f"Ошибка: {e}")
 
     def delete_birthday(message):
+        user_id = message.from_user.id
+        current_state = get_user_state(user_id)
+
+        if current_state != 'delete_birthday':
+            bot.reply_to(message, "Завершите текущую операцию перед началом новой.")
+            return
+
         if message.text.strip().lower() == "отмена":
             cancel_process(message)
             return
@@ -696,6 +758,8 @@ def init_telebot(app):
             with app.app_context():
                 birthday = db.session.query(Birthday).filter(Birthday.name == message.text.strip()).first()
                 if birthday:
+                    clear_user_state(message.from_user.id)
+
                     name = birthday.name
                     db.session.delete(birthday)
                     db.session.commit()
@@ -715,6 +779,13 @@ def init_telebot(app):
             bot.reply_to(message, f"Ошибка: {e}")
 
     def validate_holiday(message):
+        user_id = message.from_user.id
+        current_state = get_user_state(user_id)
+
+        if current_state != 'add_holiday':
+            bot.reply_to(message, "Завершите текущую операцию перед началом новой.")
+            return
+
         if message.text.strip().lower() == "отмена":
             cancel_process(message)
             return
@@ -727,6 +798,7 @@ def init_telebot(app):
                 datetime(1900, month, day)
 
             save_holiday(name, day, month, year[0] if year else None, message)
+            clear_user_state(message.from_user.id)
         except (ValueError, IndexError):
             bot.reply_to(
                 message,
@@ -750,6 +822,13 @@ def init_telebot(app):
             bot.reply_to(message, f"Ошибка: {e}")
 
     def delete_holiday(message):
+        user_id = message.from_user.id
+        current_state = get_user_state(user_id)
+
+        if current_state != 'delete_holiday':
+            bot.reply_to(message, "Завершите текущую операцию перед началом новой.")
+            return
+
         if message.text.strip().lower() == "отмена":
             cancel_process(message)
             return
@@ -760,6 +839,7 @@ def init_telebot(app):
                     name = holiday.name
                     db.session.delete(holiday)
                     db.session.commit()
+                    clear_user_state(message.from_user.id)
                     bot.reply_to(
                         message,
                         f'Праздник "{name}" успешно удален!',
@@ -778,6 +858,7 @@ def init_telebot(app):
     @bot.message_handler(commands=['manageScr'])
     @authorized_users_only
     def manageScr_start(message):
+        clear_user_state(message.from_user.id)
         bot.reply_to(
             message,
             "Вы попали в меню управления экраном, выберите нужно действие.",
@@ -800,6 +881,13 @@ def init_telebot(app):
     @bot.callback_query_handler(func=lambda call: call.data in ["main", "weather_details",
                                                                 "bAndHol_details"])
     def handle_manageScr_type(call):
+        user_id = call.from_user.id
+        current_state = get_user_state(user_id)
+
+        if current_state:
+            bot.reply_to(call.message, "Завершите текущую операцию перед началом новой.")
+            return
+
         if call.data == "main":
             socketio.emit('manageScr', {'command': 'openMain'})
             bot.answer_callback_query(call.id, f'Главная страница открыта!')
