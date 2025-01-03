@@ -157,7 +157,7 @@
     /*border-right: 5px solid #160c03;*/
 }
 
-#shopp-list {
+#shopp-list, #task-list, #holiday-list, #birthday-list {
     position: relative;
     overflow: hidden;
     padding: 7px 10px;
