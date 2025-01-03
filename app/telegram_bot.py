@@ -8,6 +8,7 @@ from app.models import Task, Birthday, Holiday, TelegramUser, Purchase
 from datetime import datetime
 from app import socketio
 import threading
+from sqlalchemy import func
 
 bot = telebot.TeleBot(ConfigTelBot.BOT_TOKEN)
 
@@ -638,15 +639,23 @@ def init_telebot(app):
             return
         try:
             with app.app_context():
-                birthday = db.session.query(Birthday).filter(Birthday.name == message.text.strip().lower()).first()
-                name = birthday.name
-                db.session.delete(birthday)
-                db.session.commit()
-                bot.reply_to(
-                    message,
-                    f'День рождения "{name}" успешно удален!',
-                    reply_markup=ReplyKeyboardRemove()
-                )
+                birthday = db.session.query(Birthday).filter(func.lower(Birthday.name) == message.text.strip().lower()).first()
+                if birthday:
+                    name = birthday.name
+                    db.session.delete(birthday)
+                    db.session.commit()
+                    bot.reply_to(
+                        message,
+                        f'День рождения "{name}" успешно удален!',
+                        reply_markup=ReplyKeyboardRemove()
+                    )
+                else:
+                    bot.reply_to(
+                        message,
+                        "Такого имени нет, попробуйте ввести снова.",
+                        reply_markup=cancel_button()
+                    )
+                    bot.register_next_step_handler(message, delete_birthday)
         except Exception as e:
             bot.reply_to(message, f"Ошибка: {e}")
 
@@ -691,15 +700,23 @@ def init_telebot(app):
             return
         try:
             with app.app_context():
-                holiday = db.session.query(Holiday).filter(Holiday.name == message.text.strip().lower()).first()
-                name = holiday.name
-                db.session.delete(holiday)
-                db.session.commit()
-                bot.reply_to(
-                    message,
-                    f'Праздник "{name}" успешно удален!',
-                    reply_markup=ReplyKeyboardRemove()
-                )
+                holiday = db.session.query(Holiday).filter(func.lower(Holiday.name) == message.text.strip().lower()).first()
+                if holiday:
+                    name = holiday.name
+                    db.session.delete(holiday)
+                    db.session.commit()
+                    bot.reply_to(
+                        message,
+                        f'Праздник "{name}" успешно удален!',
+                        reply_markup=ReplyKeyboardRemove()
+                    )
+                else:
+                    bot.reply_to(
+                        message,
+                        "Праздника с таким названием нет, попробуйте ввести снова",
+                        reply_markup=cancel_button()
+                    )
+                    bot.register_next_step_handler(message, delete_holiday)
         except Exception as e:
             bot.reply_to(message, f"Ошибка: {e}")
 
