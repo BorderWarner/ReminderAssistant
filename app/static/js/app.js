@@ -162,14 +162,21 @@ document.addEventListener("DOMContentLoaded", () => {
         if (content_views === 'main') {
             const birthdaysList = document.getElementById("birthday-list");
             birthdaysList.innerHTML = '';
-            data.forEach(birthday => {
+            if (data.length > 0) {
+                data.forEach(birthday => {
+                    const div = document.createElement("div");
+                    if (birthday.flag_today === 1) {
+                        div.className = 'animation_bounce'
+                    }
+                    div.textContent = `${birthday.name} - ${birthday.date}`;
+                    birthdaysList.appendChild(div);
+                });
+            } else {
                 const div = document.createElement("div");
-                if (birthday.flag_today === 1) {
-                    div.className = 'animation_bounce'
-                }
-                div.textContent = `${birthday.name} - ${birthday.date}`;
+                div.textContent = 'В ближайшем 30 дней нет';
                 birthdaysList.appendChild(div);
-            });
+            }
+
         }
     });
 
@@ -177,14 +184,21 @@ document.addEventListener("DOMContentLoaded", () => {
         if (content_views === 'main') {
             const holidaysList = document.getElementById("holiday-list");
             holidaysList.innerHTML = '';
-            data.forEach(holiday => {
+            if (data.length > 0) {
+                data.forEach(holiday => {
+                    const div = document.createElement("div");
+                    if (holiday.flag_today === 1) {
+                        div.className = 'animation_bounce'
+                    }
+                    div.textContent = `${holiday.name} - ${holiday.date}`;
+                    holidaysList.appendChild(div);
+                });
+            } else {
                 const div = document.createElement("div");
-                if (holiday.flag_today === 1) {
-                    div.className = 'animation_bounce'
-                }
-                div.textContent = `${holiday.name} - ${holiday.date}`;
+                div.textContent = 'В ближайшем 30 дней нет';
                 holidaysList.appendChild(div);
-            });
+            }
+
         }
     });
 
@@ -192,19 +206,27 @@ document.addEventListener("DOMContentLoaded", () => {
         if (content_views === 'main') {
             const taskList = document.getElementById("task-list");
             taskList.innerHTML = '';
-            data.forEach(task => {
+            if (data.length > 0) {
+                data.forEach(task => {
+                    const div = document.createElement("div");
+                    if (task.flag_today === 1) {
+                        div.className = 'animation_bounce'
+                    }
+                    div.id = `task_${task.id}`;
+                    if (task.deadline) {
+                        div.textContent = `${task.task} до ${task.deadline}`;
+                    } else {
+                        div.textContent = `${task.task}`;
+                    }
+                    taskList.appendChild(div);
+                });
+            } else {
                 const div = document.createElement("div");
-                if (task.flag_today === 1) {
-                    div.className = 'animation_bounce'
-                }
-                div.id = `task_${task.id}`;
-                if (task.deadline) {
-                    div.textContent = `${task.task} до ${task.deadline}`;
-                } else {
-                    div.textContent = `${task.task}`;
-                }
+                div.id = `empty_task`;
+                div.textContent = 'Нет невыполненных задач';
                 taskList.appendChild(div);
-            });
+            }
+
         }
     });
 
@@ -212,16 +234,24 @@ document.addEventListener("DOMContentLoaded", () => {
         if (content_views === 'main') {
             const shoppList = document.getElementById("shopp-list");
             shoppList.innerHTML = '';
-            data.forEach(purchase => {
+            if (data.length > 0) {
+                data.forEach(purchase => {
+                    const div = document.createElement("div");
+                    div.id = `purchase_${purchase.id}`;
+                    if (purchase.size) {
+                        div.textContent = `"${purchase.name}" ${purchase.size} в количестве ${purchase.quantity} шт.`;
+                    } else {
+                        div.textContent = `"${purchase.name}" в количестве ${purchase.quantity} шт.`;
+                    }
+                    shoppList.appendChild(div);
+                });
+            } else {
                 const div = document.createElement("div");
-                div.id = `purchase_${purchase.id}`;
-                if (purchase.size) {
-                    div.textContent = `"${purchase.name}" ${purchase.size} в количестве ${purchase.quantity} шт.`;
-                } else {
-                    div.textContent = `"${purchase.name}" в количестве ${purchase.quantity} шт.`;
-                }
+                div.id = `empty_shoppList`;
+                div.textContent = 'Нет покупок';
                 shoppList.appendChild(div);
-            });
+            }
+
         }
     });
 
@@ -230,6 +260,10 @@ document.addEventListener("DOMContentLoaded", () => {
         if (content_views === 'main') {
             const taskList = document.getElementById("task-list");
             if (taskList) {
+                const emptyTask = taskList.querySelector("#empty_task");
+                if (emptyTask) {
+                    taskList.removeChild(emptyTask);
+                }
                 const div = document.createElement("div");
                 if (task.flag_today === 1) {
                     div.className = 'animation_bounce'
@@ -252,6 +286,13 @@ document.addEventListener("DOMContentLoaded", () => {
             if (taskElement) {
                 taskElement.remove();
             }
+            const taskList = document.getElementById("task-list");
+            if (taskList.children.length === 0) {
+                const div = document.createElement("div");
+                div.id = `empty_task`;
+                div.textContent = 'Нет невыполненных дел';
+                taskList.appendChild(div);
+            }
         }
     });
 
@@ -259,6 +300,10 @@ document.addEventListener("DOMContentLoaded", () => {
         if (content_views === 'main') {
             const shoppList = document.getElementById("shopp-list");
             if (shoppList) {
+                const emptyShoppList = shoppList.querySelector("#empty_shoppList");
+                if (emptyShoppList) {
+                    shoppList.removeChild(emptyShoppList);
+                }
                 const div = document.createElement("div");
                 div.id = `purchase_${purchase.id}`;
                 if (purchase.size) {
@@ -277,6 +322,13 @@ document.addEventListener("DOMContentLoaded", () => {
             const purchaseElement = document.getElementById(`purchase_${purchase_id}`);
             if (purchaseElement) {
                 purchaseElement.remove();
+            }
+            const shoppList = document.getElementById("shopp-list");
+            if (shoppList.children.length === 0) {
+                const div = document.createElement("div");
+                div.id = `empty_shoppList`;
+                div.textContent = 'Нет покупок';
+                shoppList.appendChild(div);
             }
         }
     });
