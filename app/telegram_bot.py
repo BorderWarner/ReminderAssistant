@@ -575,8 +575,12 @@ def init_telebot(app):
             bot.register_next_step_handler(call.message, validate_birthday)
         elif call.data == "delete_birthday":
             # TODO: удаление др
-            bot.answer_callback_query(call.id, f'В разработке...')
-            pass
+            bot.reply_to(
+                call.message,
+                "Введите имя человека для удаления ДР или нажмите 'Отмена').",
+                reply_markup=cancel_button()
+            )
+            bot.register_next_step_handler(call.message, delete_birthday)
         elif call.data == "add_holiday":
             bot.reply_to(
                 call.message,
@@ -586,8 +590,12 @@ def init_telebot(app):
             bot.register_next_step_handler(call.message, validate_holiday)
         elif call.data == "delete_holiday":
             # TODO: удаление праздника
-            bot.answer_callback_query(call.id, f'В разработке...')
-            pass
+            bot.reply_to(
+                call.message,
+                "Введите название праздника для удаления или нажмите 'Отмена').",
+                reply_markup=cancel_button()
+            )
+            bot.register_next_step_handler(call.message, delete_holiday)
 
     def validate_birthday(message):
         if message.text.strip().lower() == "отмена":
@@ -624,6 +632,24 @@ def init_telebot(app):
         except Exception as e:
             bot.reply_to(message, f"Ошибка: {e}")
 
+    def delete_birthday(message):
+        if message.text.strip().lower() == "отмена":
+            cancel_process(message)
+            return
+        try:
+            with app.app_context():
+                birthday = db.session.query(Birthday).filter(Birthday.name == message.lower()).first()
+                name = birthday.name
+                db.session.delete(birthday)
+                db.session.commit()
+                bot.reply_to(
+                    message,
+                    f'День рождения "{name}" успешно удален!',
+                    reply_markup=ReplyKeyboardRemove()
+                )
+        except Exception as e:
+            bot.reply_to(message, f"Ошибка: {e}")
+
     def validate_holiday(message):
         if message.text.strip().lower() == "отмена":
             cancel_process(message)
@@ -654,6 +680,24 @@ def init_telebot(app):
                 bot.reply_to(
                     message,
                     f'Праздник "{name}" на {day}.{month}{f".{year}" if year else ""} успешно добавлен!',
+                    reply_markup=ReplyKeyboardRemove()
+                )
+        except Exception as e:
+            bot.reply_to(message, f"Ошибка: {e}")
+
+    def delete_holiday(message):
+        if message.text.strip().lower() == "отмена":
+            cancel_process(message)
+            return
+        try:
+            with app.app_context():
+                holiday = db.session.query(Holiday).filter(Holiday.name == message.lower()).first()
+                name = holiday.name
+                db.session.delete(holiday)
+                db.session.commit()
+                bot.reply_to(
+                    message,
+                    f'Праздник "{name}" успешно удален!',
                     reply_markup=ReplyKeyboardRemove()
                 )
         except Exception as e:
