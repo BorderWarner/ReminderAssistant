@@ -8,11 +8,24 @@ from app.models import Task, Birthday, Holiday, TelegramUser, Purchase
 from datetime import datetime
 from app import socketio
 import threading
-from sqlalchemy import func
 
 bot = telebot.TeleBot(ConfigTelBot.BOT_TOKEN)
 
 bot_stop_event = threading.Event()
+
+user_states = {}
+
+
+def set_user_state(user_id, state):
+    user_states[user_id] = state
+
+
+def get_user_state(user_id):
+    return user_states.get(user_id)
+
+
+def clear_user_state(user_id):
+    user_states.pop(user_id, None)
 
 
 def run_telegram_bot(app):
@@ -22,7 +35,7 @@ def run_telegram_bot(app):
                 bot.polling(non_stop=True, interval=0, timeout=20)
             except Exception as e:
                 print(f"Ошибка телеграм-бота: {e}")
-                continue
+                bot_stop_event.wait(5)
 
 
 def init_telebot(app):
@@ -54,6 +67,16 @@ def init_telebot(app):
             markup.add(KeyboardButton(f'/{command} - {description}'))
         return markup
 
+    # Выход из функционала
+    def cancel_process(message):
+        user_id = message.from_user.id
+        clear_user_state(user_id)
+        bot.reply_to(
+            message,
+            "Операция отменена.",
+            reply_markup=ReplyKeyboardRemove()
+        )
+
     def cancel_button():
         cancel_button = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True, is_persistent=True)
         cancel_button.add(KeyboardButton("Отмена"))
@@ -64,6 +87,7 @@ def init_telebot(app):
         if message.text.strip().lower() == "отмена":
             cancel_process(message)
             return
+        clear_user_state(message.from_user.id)
         comms = [("help", "Показать справку с доступными командами")]
         response = (
             "Извините, я не понимаю это сообщение. Нажмите кнопку ниже для получения справки."
@@ -74,6 +98,7 @@ def init_telebot(app):
     def send_welcome(message):
         try:
             with app.app_context():
+                clear_user_state(message.from_user.id)
                 user = db.session.query(TelegramUser).filter_by(telegram_id=message.from_user.id).first()
                 if not user:
                     new_user = TelegramUser(
@@ -102,6 +127,7 @@ def init_telebot(app):
     @bot.message_handler(commands=['help'])
     @authorized_users_only
     def send_help(message):
+        clear_user_state(message.from_user.id)
         help_message = "Вот список всех доступных команд и их описание:"
         comms = [
             ("manageScr", "Управление экраном"),
@@ -117,6 +143,7 @@ def init_telebot(app):
     @bot.message_handler(commands=['task'])
     @authorized_users_only
     def task_start(message):
+        clear_user_state(message.from_user.id)
         bot.reply_to(
             message,
             "Вы попали в меню управления задачами, выберите нужно действие.",
@@ -138,7 +165,15 @@ def init_telebot(app):
 
     @bot.callback_query_handler(func=lambda call: call.data in ["add_task", "perform_task", "show_tasks"])
     def handle_task_type(call):
+        user_id = call.from_user.id
+        current_state = get_user_state(user_id)
+
+        if current_state:
+            bot.reply_to(call.message, "Завершите текущую операцию перед началом новой.")
+            return
+
         if call.data == "add_task":
+            set_user_state(user_id, "add_task")
             bot.reply_to(
                 call.message,
                 "С помощью этой команды можно добавить задачу. Укажите, нужна ли задача с дедлайном.",
@@ -150,6 +185,7 @@ def init_telebot(app):
                 reply_markup=cancel_button()
             )
         elif call.data == "perform_task":
+            set_user_state(user_id, "perform_task")
             try:
                 with app.app_context():
                     tasks = db.session.query(Task).filter(Task.status != 'Выполнено').all()
@@ -168,6 +204,7 @@ def init_telebot(app):
             except Exception as e:
                 bot.reply_to(call.message, f"Ошибка: {e}")
         elif call.data == "show_tasks":
+            clear_user_state(user_id)
             try:
                 with app.app_context():
                     tasks = db.session.query(Task).filter(Task.status != 'Выполнено').all()
@@ -194,9 +231,10 @@ def init_telebot(app):
         )
         return keyboard
 
-    @bot.callback_query_handler(func=lambda call: call.data in ["task_with_deadline", "task_without_deadline"])
+    @bot.callback_query_handler(func=lambda call: (call.data in ["task_with_deadline", "task_without_deadline"]) and (get_user_state(call.from_user.id) == "add_task"))
     def handle_task_type(call):
         if call.data == "task_with_deadline":
+            set_user_state(call.from_user.id, "task_with_deadline")
             bot.send_message(
                 call.message.chat.id,
                 "Введите дедлайн задачи в формате ДД.ММ.ГГГГ ЧЧ:ММ или нажмите 'Отмена'.",
@@ -204,6 +242,7 @@ def init_telebot(app):
             )
             bot.register_next_step_handler(call.message, validate_deadline)
         elif call.data == "task_without_deadline":
+            set_user_state(call.from_user.id, "task_without_deadline")
             bot.send_message(
                 call.message.chat.id,
                 "Введите текст задачи или нажмите 'Отмена'.",
@@ -212,11 +251,19 @@ def init_telebot(app):
             bot.register_next_step_handler(call.message, validate_task)
 
     def validate_deadline(message):
+        user_id = message.from_user.id
+        current_state = get_user_state(user_id)
+
+        if current_state != 'task_with_deadline':
+            bot.reply_to(message, "Завершите текущую операцию перед началом новой.")
+            return
+
         if message.text.strip().lower() == "отмена":
             cancel_process(message)
             return
 
         try:
+            set_user_state(message.from_user.id, "task_without_deadline")
             deadline = datetime.strptime(message.text.strip(), '%d.%m.%Y %H:%M')
             bot.reply_to(
                 message,
@@ -233,6 +280,13 @@ def init_telebot(app):
             bot.register_next_step_handler(message, validate_deadline)
 
     def validate_task(message, deadline=None):
+        user_id = message.from_user.id
+        current_state = get_user_state(user_id)
+
+        if current_state != 'task_without_deadline':
+            bot.reply_to(message, "Завершите текущую операцию перед началом новой.")
+            return
+
         if message.text.strip().lower() == "отмена":
             cancel_process(message)
             return
@@ -246,6 +300,7 @@ def init_telebot(app):
             bot.register_next_step_handler(message, validate_task, deadline)
             return
 
+        clear_user_state(message.from_user.id)
         save_task(message, message.text.strip(), deadline)
 
     def save_task(message, task_text, deadline):
@@ -286,7 +341,7 @@ def init_telebot(app):
                 reply_markup=ReplyKeyboardRemove()
             )
 
-    @bot.callback_query_handler(func=lambda call: call.data.startswith('perform_task_'))
+    @bot.callback_query_handler(func=lambda call: (call.data.startswith('perform_task_')) and (get_user_state(call.from_user.id) == "perform_task"))
     @authorized_users_only
     def perform_task_callback(call):
         try:
@@ -305,6 +360,8 @@ def init_telebot(app):
                 db.session.commit()
 
                 socketio.emit('delete_task', {'task_id': task.id})
+
+                clear_user_state(call.from_user.id)
 
                 bot.answer_callback_query(call.id, f'Задача {task.task} выполнена!')
 
@@ -575,7 +632,6 @@ def init_telebot(app):
             )
             bot.register_next_step_handler(call.message, validate_birthday)
         elif call.data == "delete_birthday":
-            # TODO: удаление др
             bot.reply_to(
                 call.message,
                 "Введите имя человека для удаления ДР или нажмите 'Отмена').",
@@ -590,7 +646,6 @@ def init_telebot(app):
             )
             bot.register_next_step_handler(call.message, validate_holiday)
         elif call.data == "delete_holiday":
-            # TODO: удаление праздника
             bot.reply_to(
                 call.message,
                 "Введите название праздника для удаления или нажмите 'Отмена').",
@@ -754,11 +809,3 @@ def init_telebot(app):
         elif call.data == "bAndHol_details":
             socketio.emit('manageScr', {'command': 'openBirthdaysAndHolidaysDetails'})
             bot.answer_callback_query(call.id, f'Страница ДР и праздников открыта!')
-
-    # Выход из функционала
-    def cancel_process(message):
-        bot.reply_to(
-            message,
-            "Операция отменена.",
-            reply_markup=ReplyKeyboardRemove()
-        )
