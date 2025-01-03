@@ -83,10 +83,20 @@
     background: rgba(255, 255, 255, 0.1);
 }
 
+.header_cont_on_bAndH {
+    height: 10%;
+    font-size: 2rem;
+    text-decoration: underline;
+    text-underline-offset: 8px;
+    align-content: center;
+    background: rgba(255, 255, 255, 0.1);
+}
+
 
 
 .list {
-    height: 80%;
+    height: -webkit-fill-available;
+    overflow: hidden;
     margin: 0;
     padding: 10px 0;
     background: rgba(255, 255, 255, 0.2);
@@ -125,6 +135,7 @@
 }
 
 #birthdays-container, #holidays-container{
+    position: relative;
     width: 50%;
     height: 100%;
     clip-path: content-box;
@@ -136,6 +147,7 @@
 }
 
 #task-list-container, #shopp-list-container{
+    position: relative;
     width: 50%;
     height: 100%;
     /*border-bottom: 5px solid #160c03;*/
@@ -143,6 +155,12 @@
 
 #task-list-container {
     /*border-right: 5px solid #160c03;*/
+}
+
+#shopp-list {
+    position: relative;
+    overflow: hidden;
+    padding: 7px 10px;
 }
 
 #reminder-container {
@@ -195,25 +213,31 @@
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    justify-content: center;
     align-content: center;
+    justify-content: space-evenly;
+    padding: 0 5px;
 }
 .weather_hour_card {
+    width: 10%;
+    height: 80%;
+    display: grid;
     text-align: center;
     padding: 5px;
     margin: 5px;
-    /*border: 2px solid #160c03;*/
+    /* border: 2px solid #160c03; */
     border-radius: 10px;
     font-size: 35px;
     background: rgba(255, 255, 255, 0.1);
 }
 .inscription_we {
     border: none;
+    align-content: center;
     background: rgba(255, 255, 255, 0.1);
     border-radius: 5px;
 }
 .weather-chart img {
-    width: 50px;
+    width: 70px;
+    place-self: center;
 }
 
 #weather-details-view {

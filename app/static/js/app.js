@@ -98,11 +98,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 </div>
                 <div id="hAndBDetails" class="d_container">
                     <div id="birthdays-details-view">
-                        <div>Дни рождения</div>
+                        <div class="header_cont_on_bAndH">Дни рождения</div>
                         <div id="birthday-list" class="list"></div>
                     </div>
                     <div id="holidays-details-view">
-                        <div>Праздники</div>
+                        <div class="header_cont_on_bAndH">Праздники</div>
                         <div id="holiday-list" class="list"></div>
                     </div>
                 </div>
@@ -311,6 +311,9 @@ document.addEventListener("DOMContentLoaded", () => {
         holidaysList.innerHTML = '';
         data.holidays.forEach(holiday => {
             const div = document.createElement("div");
+            if (holiday.flag_today === 1) {
+                    div.className = 'animation_bounce'
+                }
             div.textContent = `${holiday.name} - ${holiday.date}`;
             holidaysList.appendChild(div);
         });
@@ -318,6 +321,9 @@ document.addEventListener("DOMContentLoaded", () => {
         birthdaysList.innerHTML = '';
         data.birthdays.forEach(birthday => {
             const div = document.createElement("div");
+            if (birthday.flag_today === 1) {
+                    div.className = 'animation_bounce'
+                }
             div.textContent = `${birthday.name} - ${birthday.date}`;
             birthdaysList.appendChild(div);
         });

@@ -15,12 +15,12 @@ def get_forecast_weather():
         if response.status_code == 200:
             data = response.json()
             forecast = []
-            now = datetime.utcnow()
-            today = now.date()
 
             for entry in data['list']:
                 date_time = datetime.strptime(entry['dt_txt'], "%Y-%m-%d %H:%M:%S")
-                temp = entry['main']['temp']
+                temp = int(str(entry['main']['temp']).split('.')[0]) if \
+                    ('.' in str(entry['main']['temp'])) else \
+                    entry['main']['temp']
                 description = entry['weather'][0]['description']
                 icon = entry['weather'][0]['icon']
                 wind_speed = entry['wind']['speed']
@@ -35,9 +35,9 @@ def get_forecast_weather():
                     'humidity': humidity
                 }
 
-                if len(forecast) < 8:
+                if len(forecast) < 9:
                     forecast.append(forecast_entry)
-
+            forecast.pop(0)
             return forecast
         return []
     except requests.exceptions.RequestException:
@@ -54,7 +54,9 @@ def get_current_weather():
     if response.status_code == 200:
         data = response.json()
 
-        temp = data['main']['temp']
+        temp = int(str(data['main']['temp']).split('.')[0]) if \
+            ('.' in str(data['main']['temp'])) else \
+            data['main']['temp']
         description = data['weather'][0]['description']
         icon = data['weather'][0]['icon']
         wind_speed = data['wind']['speed']
@@ -83,16 +85,22 @@ def get_forecast_weather_details():
         if response.status_code == 200:
             data = response.json()
             grouped_forecasts = defaultdict(list)
+            today = datetime.now().date()
 
             for entry in data['list']:
                 date_time = datetime.strptime(entry['dt_txt'], "%Y-%m-%d %H:%M:%S")
                 hour = date_time.hour
                 day = date_time.date()
 
+                if today == day:
+                    continue
+
                 if hour in {6, 12, 18}:
                     forecast_entry = {
                         'time': date_time.strftime('%H:%M'),
-                        'temp': entry['main']['temp'],
+                        'temp': int(str(entry['main']['temp']).split('.')[0]) if \
+                            ('.' in str(entry['main']['temp'])) else \
+                            entry['main']['temp'],
                         'description': entry['weather'][0]['description'],
                         'icon': f"https://openweathermap.org/img/wn/{entry['weather'][0]['icon']}.png",
                         'wind_speed': entry['wind']['speed'],

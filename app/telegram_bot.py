@@ -14,11 +14,6 @@ bot = telebot.TeleBot(ConfigTelBot.BOT_TOKEN)
 bot_stop_event = threading.Event()
 
 
-def stop_telegram_bot():
-    bot_stop_event.set()
-    bot.stop_polling()
-
-
 def run_telegram_bot(app):
     with app.app_context():
         while not bot_stop_event.is_set():
@@ -268,7 +263,7 @@ def init_telebot(app):
                 today = datetime.now()
                 flag_today = 0
                 if new_task.deadline:
-                    if today.strftime('%d.%m.%Y') == new_task.deadline.strftime('%d.%m.%Y'):
+                    if today.strftime('%d.%m.%Y') >= new_task.deadline.strftime('%d.%m.%Y'):
                         flag_today = 1
 
                 socketio.emit('new_task', {'id': new_task.id,

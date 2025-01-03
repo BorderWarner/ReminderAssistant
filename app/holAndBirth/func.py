@@ -23,7 +23,7 @@ def get_year_suffix(age):
         return "лет"
 
 
-def get_holidays_for(days=30):
+def get_holidays_for(days=30, limit=None):
     today = date.today()
     current_day = today.day
     current_month = today.month
@@ -66,7 +66,11 @@ def get_holidays_for(days=30):
         )
 
     holidays = []
-    for holiday in holidays_query.all():
+    if limit:
+        result_query = holidays_query.limit(limit)
+    else:
+        result_query = holidays_query.all()
+    for holiday in result_query:
         holiday_date_this_year = date(today.year, holiday.month, holiday.day)
         if holiday_date_this_year < today:
             holiday_date_this_year = date(today.year + 1, holiday.month, holiday.day)
@@ -91,7 +95,7 @@ def get_holidays_for(days=30):
     return sorted_holidays
 
 
-def get_birthdays_for(days=30):
+def get_birthdays_for(days=30, limit=None):
     today = date.today()
     current_day = today.day
     current_month = today.month
@@ -134,7 +138,11 @@ def get_birthdays_for(days=30):
         )
 
     birthdays = []
-    for birthday in birthdays_query.all():
+    if limit:
+        result_query = birthdays_query.limit(limit)
+    else:
+        result_query = birthdays_query.all()
+    for birthday in result_query:
         birthday_date_this_year = date(today.year, birthday.month, birthday.day)
         if birthday_date_this_year < today:
             birthday_date_this_year = date(today.year + 1, birthday.month, birthday.day)
