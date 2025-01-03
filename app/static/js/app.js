@@ -173,7 +173,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 });
             } else {
                 const div = document.createElement("div");
-                div.textContent = 'В ближайшем 30 дней нет';
+                div.textContent = 'В ближайшие 30 дней нет';
                 birthdaysList.appendChild(div);
             }
 
@@ -195,7 +195,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 });
             } else {
                 const div = document.createElement("div");
-                div.textContent = 'В ближайшем 30 дней нет';
+                div.textContent = 'В ближайшие 30 дней нет';
                 holidaysList.appendChild(div);
             }
 
