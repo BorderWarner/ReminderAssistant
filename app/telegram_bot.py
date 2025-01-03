@@ -639,7 +639,7 @@ def init_telebot(app):
             return
         try:
             with app.app_context():
-                birthday = db.session.query(Birthday).filter(func.lower(Birthday.name) == message.text.strip().lower()).first()
+                birthday = db.session.query(Birthday).filter(Birthday.name == message.text.strip()).first()
                 if birthday:
                     name = birthday.name
                     db.session.delete(birthday)
@@ -700,7 +700,7 @@ def init_telebot(app):
             return
         try:
             with app.app_context():
-                holiday = db.session.query(Holiday).filter(func.lower(Holiday.name) == message.text.strip().lower()).first()
+                holiday = db.session.query(Holiday).filter(Holiday.name == message.text.strip()).first()
                 if holiday:
                     name = holiday.name
                     db.session.delete(holiday)
