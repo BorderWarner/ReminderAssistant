@@ -23,7 +23,7 @@ def get_year_suffix(age):
         return "лет"
 
 
-def get_holidays_for(days=30, limit=None):
+def get_holidays_for(days=None, limit=None):
     today = date.today()
     current_day = today.day
     current_month = today.month
@@ -32,38 +32,41 @@ def get_holidays_for(days=30, limit=None):
     future_day = future_date.day
     future_month = future_date.month
 
-    if future_month >= current_month:
-        holidays_query = db.session.query(Holiday).filter(
-            or_(
-                and_(
-                    Holiday.month == current_month,
-                    Holiday.day >= current_day
-                ),
-                and_(
-                    Holiday.month > current_month,
-                    Holiday.month < future_month
-                ),
-                and_(
-                    Holiday.month == future_month,
-                    Holiday.day <= future_day
+    if days:
+        if future_month >= current_month:
+            holidays_query = db.session.query(Holiday).filter(
+                or_(
+                    and_(
+                        Holiday.month == current_month,
+                        Holiday.day >= current_day
+                    ),
+                    and_(
+                        Holiday.month > current_month,
+                        Holiday.month < future_month
+                    ),
+                    and_(
+                        Holiday.month == future_month,
+                        Holiday.day <= future_day
+                    )
                 )
             )
-        )
-    else:
-        holidays_query = db.session.query(Holiday).filter(
-            or_(
-                and_(
-                    Holiday.month == current_month,
-                    Holiday.day >= current_day
-                ),
-                Holiday.month > current_month,
-                and_(
-                    Holiday.month == future_month,
-                    Holiday.day <= future_day
-                ),
-                Holiday.month < future_month
+        else:
+            holidays_query = db.session.query(Holiday).filter(
+                or_(
+                    and_(
+                        Holiday.month == current_month,
+                        Holiday.day >= current_day
+                    ),
+                    Holiday.month > current_month,
+                    and_(
+                        Holiday.month == future_month,
+                        Holiday.day <= future_day
+                    ),
+                    Holiday.month < future_month
+                )
             )
-        )
+    else:
+        holidays_query = db.session.query(Holiday)
 
     holidays = []
     if limit:
@@ -95,7 +98,7 @@ def get_holidays_for(days=30, limit=None):
     return sorted_holidays
 
 
-def get_birthdays_for(days=30, limit=None):
+def get_birthdays_for(days=None, limit=None):
     today = date.today()
     current_day = today.day
     current_month = today.month
@@ -104,38 +107,41 @@ def get_birthdays_for(days=30, limit=None):
     future_day = future_date.day
     future_month = future_date.month
 
-    if future_month >= current_month:
-        birthdays_query = db.session.query(Birthday).filter(
-            or_(
-                and_(
-                    Birthday.month == current_month,
-                    Birthday.day >= current_day
-                ),
-                and_(
-                    Birthday.month > current_month,
-                    Birthday.month < future_month
-                ),
-                and_(
-                    Birthday.month == future_month,
-                    Birthday.day <= future_day
+    if days:
+        if future_month >= current_month:
+            birthdays_query = db.session.query(Birthday).filter(
+                or_(
+                    and_(
+                        Birthday.month == current_month,
+                        Birthday.day >= current_day
+                    ),
+                    and_(
+                        Birthday.month > current_month,
+                        Birthday.month < future_month
+                    ),
+                    and_(
+                        Birthday.month == future_month,
+                        Birthday.day <= future_day
+                    )
                 )
             )
-        )
-    else:
-        birthdays_query = db.session.query(Birthday).filter(
-            or_(
-                and_(
-                    Birthday.month == current_month,
-                    Birthday.day >= current_day
-                ),
-                Birthday.month > current_month,
-                and_(
-                    Birthday.month == future_month,
-                    Birthday.day <= future_day
-                ),
-                Birthday.month < future_month
+        else:
+            birthdays_query = db.session.query(Birthday).filter(
+                or_(
+                    and_(
+                        Birthday.month == current_month,
+                        Birthday.day >= current_day
+                    ),
+                    Birthday.month > current_month,
+                    and_(
+                        Birthday.month == future_month,
+                        Birthday.day <= future_day
+                    ),
+                    Birthday.month < future_month
+                )
             )
-        )
+    else:
+        birthdays_query = db.session.query(Birthday)
 
     birthdays = []
     if limit:

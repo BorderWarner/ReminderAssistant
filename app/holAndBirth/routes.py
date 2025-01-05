@@ -42,6 +42,6 @@ def init_socketio_hab(app):
     def get_bAndH_details():
         try:
             socketio.emit('holidays_and_birthdays_details_update',
-                          {'holidays': get_holidays_for(days=90), 'birthdays': get_birthdays_for(days=90)})
+                          {'holidays': get_holidays_for(limit=20), 'birthdays': get_birthdays_for(limit=20)})
         except Exception as e:
             socketio.emit('error', f"Ошибка: {e}")
