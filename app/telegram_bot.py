@@ -754,29 +754,70 @@ def init_telebot(app):
         if message.text.strip().lower() == "отмена":
             cancel_process(message)
             return
+
+        search_query = message.text.strip()
+
+        if len(search_query) < 3:
+            bot.reply_to(message, "Введите не менее 3 символов.", reply_markup=cancel_button())
+            bot.register_next_step_handler(message, delete_birthday)
+            return
+
         try:
             with app.app_context():
-                birthday = db.session.query(Birthday).filter(Birthday.name == message.text.strip()).first()
-                if birthday:
-                    clear_user_state(message.from_user.id)
+                birthdays = db.session.query(Birthday).filter(Birthday.name.ilike(f"%{search_query}%")).all()
 
+                if not birthdays:
+                    bot.reply_to(message, "Совпадений не найдено. Попробуйте снова.", reply_markup=cancel_button())
+                    bot.register_next_step_handler(message, delete_birthday)
+                    return
+
+                if len(birthdays) == 1:
+                    birthday = birthdays[0]
                     name = birthday.name
                     db.session.delete(birthday)
                     db.session.commit()
-                    bot.reply_to(
-                        message,
-                        f'День рождения "{name}" успешно удален!',
-                        reply_markup=ReplyKeyboardRemove()
-                    )
-                else:
-                    bot.reply_to(
-                        message,
-                        "Такого имени нет, попробуйте ввести снова.",
-                        reply_markup=cancel_button()
-                    )
-                    bot.register_next_step_handler(message, delete_birthday)
+                    clear_user_state(user_id)
+                    bot.reply_to(message, f'День рождения "{name}" успешно удален!', reply_markup=ReplyKeyboardRemove())
+                    return
+
+                keyboard = InlineKeyboardMarkup()
+                for birthday in birthdays:
+                    button_text = f"{birthday.name} ({birthday.day}.{birthday.month}.{birthday.year if birthday.year else ''})"
+                    keyboard.add(InlineKeyboardButton(button_text, callback_data=f"delete_birthday_{birthday.id}"))
+
+                response_text = "Найдено несколько совпадений, выберите один:\n\n"
+                for idx, birthday in enumerate(birthdays, start=1):
+                    response_text += f"{idx}. {birthday.name} - {birthday.day}.{birthday.month}.{birthday.year or ''}\n"
+
+                bot.reply_to(message, response_text.strip(), reply_markup=keyboard)
+                set_user_state(user_id, "delete_birthday_cont")
         except Exception as e:
             bot.reply_to(message, f"Ошибка: {e}")
+
+    @bot.callback_query_handler(func=lambda call: call.data.startswith("delete_birthday_") and (get_user_state(call.from_user.id) == "delete_birthday_cont"))
+    def handle_delete_birthday_choice(call):
+        try:
+            birthday_id = int(call.data.split("_")[-1])
+            with app.app_context():
+                birthday = db.session.query(Birthday).filter(Birthday.id == birthday_id).first()
+
+                if not birthday:
+                    bot.edit_message_text("День рождения не найден.", chat_id=call.message.chat.id,
+                                          message_id=call.message.message_id)
+                    return
+
+                name = birthday.name
+                db.session.delete(birthday)
+                db.session.commit()
+                clear_user_state(call.from_user.id)
+
+                bot.edit_message_text(
+                    f'День рождения "{name}" успешно удален!',
+                    chat_id=call.message.chat.id,
+                    message_id=call.message.message_id
+                )
+        except Exception as e:
+            bot.edit_message_text(f"Ошибка: {e}", chat_id=call.message.chat.id, message_id=call.message.message_id)
 
     def validate_holiday(message):
         user_id = message.from_user.id
