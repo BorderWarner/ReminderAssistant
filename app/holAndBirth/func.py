@@ -168,4 +168,5 @@ def get_birthdays_for(days=None, limit=None):
         birthdays,
         key=lambda x: x['days_to_birthday']
     )
+    print(sorted_birthdays)
     return sorted_birthdays
