@@ -883,7 +883,9 @@ def init_telebot(app):
 
         try:
             with app.app_context():
-                holidays = db.session.query(Holiday).filter(Holiday.name.ilike(f"%{search_query}%")).all()
+                holidays = db.session.query(Holiday).filter(
+                    db.func.lower(Holiday.name).contains(search_query.lower())
+                ).all()
 
                 if not holidays:
                     bot.reply_to(message, "Совпадений не найдено. Попробуйте снова.", reply_markup=cancel_button())
