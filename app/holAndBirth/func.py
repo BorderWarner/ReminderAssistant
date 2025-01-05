@@ -147,6 +147,7 @@ def get_birthdays_for(days=None, limit=None):
     else:
         result_query = birthdays_query.all()
     for birthday in result_query:
+        print(birthday.name)
         birthday_date_this_year = date(today.year, birthday.month, birthday.day)
         if birthday_date_this_year < today:
             birthday_date_this_year = date(today.year + 1, birthday.month, birthday.day)
