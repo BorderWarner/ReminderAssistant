@@ -671,7 +671,7 @@ def init_telebot(app):
             set_user_state(user_id, "add_birthday")
             bot.reply_to(
                 call.message,
-                "Введите день рождения в формате: Имя, ДД.ММ.ГГГГ (или нажмите 'Отмена').",
+                "Введите день рождения в формате: Имя; ДД.ММ.ГГГГ (или нажмите 'Отмена').",
                 reply_markup=cancel_button()
             )
             bot.register_next_step_handler(call.message, validate_birthday)
@@ -687,7 +687,7 @@ def init_telebot(app):
             set_user_state(user_id, "add_holiday")
             bot.reply_to(
                 call.message,
-                "Введите праздник в формате: Название, ДД.ММ.ГГГГ (или нажмите 'Отмена').",
+                "Введите праздник в формате: Название; ДД.ММ.ГГГГ (или нажмите 'Отмена').",
                 reply_markup=cancel_button()
             )
             bot.register_next_step_handler(call.message, validate_holiday)
@@ -713,7 +713,7 @@ def init_telebot(app):
             return
 
         try:
-            name, date = [x.strip() for x in message.text.split(',')]
+            name, date = [x.strip() for x in message.text.split(';')]
             day, month, *year = map(int, date.split('.'))
             if year:
                 datetime(year[0], month, day)
@@ -725,7 +725,7 @@ def init_telebot(app):
         except (ValueError, IndexError):
             bot.reply_to(
                 message,
-                "Неверный формат данных. Попробуйте снова. Пример: Имя, 25.12.1990",
+                "Неверный формат данных. Попробуйте снова. Пример: Имя; 25.12.1990",
                 reply_markup=cancel_button()
             )
             bot.register_next_step_handler(message, validate_birthday)
@@ -842,7 +842,7 @@ def init_telebot(app):
             cancel_process(message)
             return
         try:
-            name, date = [x.strip() for x in message.text.split(',')]
+            name, date = [x.strip() for x in message.text.split(';')]
             day, month, *year = map(int, date.split('.'))
             if year:
                 datetime(year[0], month, day)
@@ -854,7 +854,7 @@ def init_telebot(app):
         except (ValueError, IndexError):
             bot.reply_to(
                 message,
-                "Неверный формат данных. Попробуйте снова. Пример: Название, 31.12.2023",
+                "Неверный формат данных. Попробуйте снова. Пример: Название; 31.12.2023",
                 reply_markup=cancel_button()
             )
             bot.register_next_step_handler(message, validate_holiday)
