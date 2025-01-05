@@ -822,10 +822,15 @@ def init_telebot(app):
                 db.session.commit()
                 clear_user_state(call.from_user.id)
 
-                bot.edit_message_text(
-                    f'День рождения "{name}" успешно удален!',
+                # bot.edit_message_text(
+                #     f'День рождения "{name}" успешно удален!',
+                #     chat_id=call.message.chat.id,
+                #     message_id=call.message.message_id
+                # )
+                bot.send_message(
                     chat_id=call.message.chat.id,
-                    message_id=call.message.message_id
+                    text=f'День рождения "{name}" успешно удален!',
+                    reply_markup=ReplyKeyboardRemove()
                 )
         except Exception as e:
             bot.edit_message_text(f"Ошибка: {e}", chat_id=call.message.chat.id, message_id=call.message.message_id)
@@ -953,10 +958,15 @@ def init_telebot(app):
                 db.session.commit()
                 clear_user_state(call.from_user.id)
 
-                bot.edit_message_text(
-                    f'Праздник "{name}" успешно удален!',
+                # bot.edit_message_text(
+                #     f'Праздник "{name}" успешно удален!',
+                #     chat_id=call.message.chat.id,
+                #     message_id=call.message.message_id
+                # )
+                bot.send_message(
                     chat_id=call.message.chat.id,
-                    message_id=call.message.message_id
+                    text=f'Праздник "{name}" успешно удален!',
+                    reply_markup=ReplyKeyboardRemove()
                 )
         except Exception as e:
             bot.edit_message_text(f"Ошибка: {e}", chat_id=call.message.chat.id, message_id=call.message.message_id)
