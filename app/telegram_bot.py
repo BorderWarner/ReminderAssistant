@@ -765,14 +765,17 @@ def init_telebot(app):
 
         try:
             with app.app_context():
-                birthdays_1 = db.session.query(Birthday).filter(
-                    db.func.lower(Birthday.name).contains(search_query.lower())
+                birthdays = db.session.query(Birthday).filter(
+                    or_(Birthday.name.ilike(f"%{search_query}%"),
+                        Birthday.name.ilike(f"{search_query}%"),
+                        Birthday.name.ilike(f"%{search_query}"),
+                        Birthday.name.ilike(f"{search_query}"),
+                        Birthday.name.ilike(f"%{search_query.lower()}%"),
+                        Birthday.name.ilike(f"{search_query.lower()}%"),
+                        Birthday.name.ilike(f"%{search_query.lower()}"),
+                        Birthday.name.ilike(f"{search_query.lower()}")
+                        )
                 ).all()
-                birthdays_2 = db.session.query(Birthday).filter(
-                    Birthday.name.ilike(f"%{search_query}%")
-                ).all()
-                unique_birthdays = {birthday.id: birthday for birthday in birthdays_1 + birthdays_2}
-                birthdays = list(unique_birthdays.values())
 
                 if not birthdays:
                     bot.reply_to(message, "Совпадений не найдено. Попробуйте снова.", reply_markup=cancel_button())
