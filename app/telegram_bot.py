@@ -913,6 +913,7 @@ def init_telebot(app):
                 bot.reply_to(message, response_text.strip(), reply_markup=keyboard)
                 set_user_state(user_id, "delete_holiday_cont")
         except Exception as e:
+            print(e)
             bot.reply_to(message, f"Ошибка: {e}")
 
     @bot.callback_query_handler(func=lambda call: call.data.startswith("delete_holiday_") and (
