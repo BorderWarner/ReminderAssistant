@@ -28,11 +28,10 @@ def get_holidays_for(days=None, limit=None):
     current_day = today.day
     current_month = today.month
 
-    future_date = today + timedelta(days=days)
-    future_day = future_date.day
-    future_month = future_date.month
-
     if days:
+        future_date = today + timedelta(days=days)
+        future_day = future_date.day
+        future_month = future_date.month
         if future_month >= current_month:
             holidays_query = db.session.query(Holiday).filter(
                 or_(
@@ -103,11 +102,10 @@ def get_birthdays_for(days=None, limit=None):
     current_day = today.day
     current_month = today.month
 
-    future_date = today + timedelta(days=days)
-    future_day = future_date.day
-    future_month = future_date.month
-
     if days:
+        future_date = today + timedelta(days=days)
+        future_day = future_date.day
+        future_month = future_date.month
         if future_month >= current_month:
             birthdays_query = db.session.query(Birthday).filter(
                 or_(
