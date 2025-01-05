@@ -895,7 +895,12 @@ def init_telebot(app):
                     or_(Holiday.name.ilike(f"%{search_query}%"),
                         Holiday.name.ilike(f"{search_query}%"),
                         Holiday.name.ilike(f"%{search_query}"),
-                        Holiday.name.ilike(f"{search_query}"))
+                        Holiday.name.ilike(f"{search_query}"),
+                        Holiday.name.ilike(f"%{search_query.lower()}%"),
+                        Holiday.name.ilike(f"{search_query.lower()}%"),
+                        Holiday.name.ilike(f"%{search_query.lower()}"),
+                        Holiday.name.ilike(f"{search_query.lower()}")
+                        )
                 ).all()
 
                 if not holidays:
