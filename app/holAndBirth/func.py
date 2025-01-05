@@ -65,7 +65,7 @@ def get_holidays_for(days=None, limit=None):
                 )
             )
     else:
-        holidays_query = db.session.query(Holiday)
+        holidays_query = db.session.query(Holiday).order_by(Holiday.month, Holiday.day)
 
     holidays = []
     if limit:
@@ -139,7 +139,7 @@ def get_birthdays_for(days=None, limit=None):
                 )
             )
     else:
-        birthdays_query = db.session.query(Birthday)
+        birthdays_query = db.session.query(Birthday).order_by(Birthday.month, Birthday.day)
 
     birthdays = []
     if limit:
