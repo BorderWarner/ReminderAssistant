@@ -764,7 +764,14 @@ def init_telebot(app):
 
         try:
             with app.app_context():
-                birthdays = db.session.query(Birthday).filter(Birthday.name.ilike(f"%{search_query}%")).all()
+                birthdays_1 = db.session.query(Birthday).filter(
+                    db.func.lower(Birthday.name).contains(search_query.lower())
+                ).all()
+                birthdays_2 = db.session.query(Birthday).filter(
+                    Birthday.name.ilike(f"%{search_query}%")
+                ).all()
+                unique_birthdays = {birthday.id: birthday for birthday in birthdays_1 + birthdays_2}
+                birthdays = list(unique_birthdays.values())
 
                 if not birthdays:
                     bot.reply_to(message, "Совпадений не найдено. Попробуйте снова.", reply_markup=cancel_button())
@@ -886,19 +893,11 @@ def init_telebot(app):
                 holidays_1 = db.session.query(Holiday).filter(
                     db.func.lower(Holiday.name).contains(search_query.lower())
                 ).all()
-
-                print('1111', holidays_1)
-
                 holidays_2 = db.session.query(Holiday).filter(
                     Holiday.name.ilike(f"%{search_query}%")
                 ).all()
-
-                print('2222', holidays_2)
-
                 unique_holidays = {holiday.id: holiday for holiday in holidays_1 + holidays_2}
                 holidays = list(unique_holidays.values())
-
-                print('3333', holidays)
 
                 if not holidays:
                     bot.reply_to(message, "Совпадений не найдено. Попробуйте снова.", reply_markup=cancel_button())
