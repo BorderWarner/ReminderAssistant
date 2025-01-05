@@ -883,9 +883,22 @@ def init_telebot(app):
 
         try:
             with app.app_context():
-                holidays = db.session.query(Holiday).filter(
+                holidays_1 = db.session.query(Holiday).filter(
                     db.func.lower(Holiday.name).contains(search_query.lower())
                 ).all()
+
+                print('1111', holidays_1)
+
+                holidays_2 = db.session.query(Holiday).filter(
+                    Holiday.name.ilike(f"%{search_query}%")
+                ).all()
+
+                print('2222', holidays_2)
+
+                unique_holidays = {holiday.id: holiday for holiday in holidays_1 + holidays_2}
+                holidays = list(unique_holidays.values())
+
+                print('3333', holidays)
 
                 if not holidays:
                     bot.reply_to(message, "Совпадений не найдено. Попробуйте снова.", reply_markup=cancel_button())
