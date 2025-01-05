@@ -873,28 +873,71 @@ def init_telebot(app):
         if message.text.strip().lower() == "отмена":
             cancel_process(message)
             return
+
+        search_query = message.text.strip()
+
+        if len(search_query) < 3:
+            bot.reply_to(message, "Введите не менее 3 символов.", reply_markup=cancel_button())
+            bot.register_next_step_handler(message, delete_holiday)
+            return
+
         try:
             with app.app_context():
-                holiday = db.session.query(Holiday).filter(Holiday.name == message.text.strip()).first()
-                if holiday:
+                holidays = db.session.query(Holiday).filter(Holiday.name.ilike(f"%{search_query}%")).all()
+
+                if not holidays:
+                    bot.reply_to(message, "Совпадений не найдено. Попробуйте снова.", reply_markup=cancel_button())
+                    bot.register_next_step_handler(message, delete_holiday)
+                    return
+
+                if len(holidays) == 1:
+                    holiday = holidays[0]
                     name = holiday.name
                     db.session.delete(holiday)
                     db.session.commit()
-                    clear_user_state(message.from_user.id)
-                    bot.reply_to(
-                        message,
-                        f'Праздник "{name}" успешно удален!',
-                        reply_markup=ReplyKeyboardRemove()
-                    )
-                else:
-                    bot.reply_to(
-                        message,
-                        "Праздника с таким названием нет, попробуйте ввести снова",
-                        reply_markup=cancel_button()
-                    )
-                    bot.register_next_step_handler(message, delete_holiday)
+                    clear_user_state(user_id)
+                    bot.reply_to(message, f'Праздник "{name}" успешно удален!', reply_markup=ReplyKeyboardRemove())
+                    return
+
+                keyboard = InlineKeyboardMarkup()
+                for holiday in holidays:
+                    button_text = f"{holiday.name} ({holiday.day}.{holiday.month}.{holiday.year if holiday.year else ''})"
+                    keyboard.add(InlineKeyboardButton(button_text, callback_data=f"delete_holiday_{holiday.id}"))
+
+                response_text = "Найдено несколько совпадений, выберите один:\n\n"
+                for idx, holiday in enumerate(holidays, start=1):
+                    response_text += f"{idx}. {holiday.name} - {holiday.day}.{holiday.month}.{holiday.year or ''}\n"
+
+                bot.reply_to(message, response_text.strip(), reply_markup=keyboard)
+                set_user_state(user_id, "delete_holiday_cont")
         except Exception as e:
             bot.reply_to(message, f"Ошибка: {e}")
+
+    @bot.callback_query_handler(func=lambda call: call.data.startswith("delete_holiday_") and (
+            get_user_state(call.from_user.id) == "delete_holiday_cont"))
+    def handle_delete_holiday_choice(call):
+        try:
+            holiday_id = int(call.data.split("_")[-1])
+            with app.app_context():
+                holiday = db.session.query(Holiday).filter(Holiday.id == holiday_id).first()
+
+                if not holiday:
+                    bot.edit_message_text("Праздник не найден.", chat_id=call.message.chat.id,
+                                          message_id=call.message.message_id)
+                    return
+
+                name = holiday.name
+                db.session.delete(holiday)
+                db.session.commit()
+                clear_user_state(call.from_user.id)
+
+                bot.edit_message_text(
+                    f'Праздник "{name}" успешно удален!',
+                    chat_id=call.message.chat.id,
+                    message_id=call.message.message_id
+                )
+        except Exception as e:
+            bot.edit_message_text(f"Ошибка: {e}", chat_id=call.message.chat.id, message_id=call.message.message_id)
 
     @bot.message_handler(commands=['manageScr'])
     @authorized_users_only
