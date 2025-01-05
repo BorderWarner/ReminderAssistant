@@ -5,6 +5,7 @@ from telebot.types import KeyboardButton, \
 from config import ConfigTelBot
 from app.database import db
 from app.models import Task, Birthday, Holiday, TelegramUser, Purchase
+from sqlalchemy import or_
 from datetime import datetime
 from app import socketio
 import threading
@@ -890,14 +891,12 @@ def init_telebot(app):
 
         try:
             with app.app_context():
-                holidays_1 = db.session.query(Holiday).filter(
-                    db.func.lower(Holiday.name).contains(search_query.lower())
+                holidays = db.session.query(Holiday).filter(
+                    or_(Holiday.name.ilike(f"%{search_query}%"),
+                        Holiday.name.ilike(f"{search_query}%"),
+                        Holiday.name.ilike(f"%{search_query}"),
+                        Holiday.name.ilike(f"{search_query}"))
                 ).all()
-                holidays_2 = db.session.query(Holiday).filter(
-                    Holiday.name.ilike(f"%{search_query}%")
-                ).all()
-                unique_holidays = {holiday.id: holiday for holiday in holidays_1 + holidays_2}
-                holidays = list(unique_holidays.values())
 
                 if not holidays:
                     bot.reply_to(message, "Совпадений не найдено. Попробуйте снова.", reply_markup=cancel_button())
