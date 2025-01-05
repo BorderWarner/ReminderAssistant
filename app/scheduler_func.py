@@ -41,7 +41,8 @@ def start_scheduler_task(app, socketio, scheduler):
 
     def update_birthdays_task():
         with app.app_context():
-            socketio.emit('birthdays_update', get_birthdays_for(30))
+            print(f'birthdays_update_at_{datetime.now()}')
+            socketio.emit('birthdays_update', get_birthdays_for(days=30, limit=10))
 
     scheduler.add_job(
         id='update_birthdays',
@@ -55,7 +56,8 @@ def start_scheduler_task(app, socketio, scheduler):
 
     def update_holidays_task():
         with app.app_context():
-            socketio.emit('holidays_update', get_holidays_for(30))
+            print(f'holidays_update_at_{datetime.now()}')
+            socketio.emit('holidays_update', get_holidays_for(days=30, limit=10))
 
     scheduler.add_job(
         id='update_holidays',
