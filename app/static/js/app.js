@@ -484,24 +484,36 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
 
-    function speakText(text) {
-        const voices = speechSynthesis.getVoices();
-        console.log("Доступные голоса:");
-        voices.forEach((voice, index) => {
-            if (voice.lang.indexOf("ru") >= 0) {
-                const voiceIntro = new SpeechSynthesisUtterance(`Голос номер ${index + 1}: ${voice.name}. Я хочу есть.`+text);
-                voiceIntro.lang = voice.lang;
-                voiceIntro.voice = voice;
-                voiceIntro.rate = 0.8;
-                speechSynthesis.speak(voiceIntro);
-                console.log(`${index}: ${voice.name} (${voice.lang}) - ${voice.default ? "по умолчанию" : "не по умолчанию"}`);
-            }
-        });
-        // speechSynthesis.speak(utterance);
-    }
-
     socket.on('speak_text_event', (data) => {
-        const text = data.text;
-        speakText(text);
+        const audioUrl = data.audio_url;
+        if (audioUrl) {
+            const audioElement = new Audio(audioUrl);
+            audioElement.play()
+                .then(() => console.log("Аудио воспроизводится."))
+                .catch(error => console.error("Ошибка воспроизведения аудио:", error));
+        } else {
+            console.error("URL аудиофайла отсутствует.");
+        }
     });
+
+    // function speakText(text) {
+    //     const voices = speechSynthesis.getVoices();
+    //     console.log("Доступные голоса:");
+    //     voices.forEach((voice, index) => {
+    //         if (voice.lang.indexOf("ru") >= 0) {
+    //             const voiceIntro = new SpeechSynthesisUtterance(`Голос номер ${index + 1}: ${voice.name}. Я хочу есть.`+text);
+    //             voiceIntro.lang = voice.lang;
+    //             voiceIntro.voice = voice;
+    //             voiceIntro.rate = 0.8;
+    //             speechSynthesis.speak(voiceIntro);
+    //             console.log(`${index}: ${voice.name} (${voice.lang}) - ${voice.default ? "по умолчанию" : "не по умолчанию"}`);
+    //         }
+    //     });
+    //     // speechSynthesis.speak(utterance);
+    // }
+    //
+    // socket.on('speak_text_event', (data) => {
+    //     const text = data.text;
+    //     speakText(text);
+    // });
 });

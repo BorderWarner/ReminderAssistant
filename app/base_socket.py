@@ -1,6 +1,8 @@
 from datetime import datetime
 from app.weather.func import get_current_weather, get_forecast_weather
 from babel.dates import format_datetime
+from flask import send_from_directory
+import os
 
 
 def init_socketio_base(app):
@@ -25,3 +27,11 @@ def init_socketio_base(app):
             socketio.emit('time_update', result)
         except Exception as e:
             socketio.emit('error', f"Ошибка: {e}")
+
+    TEMP_FOLDER = "temp_audio"
+    os.makedirs(TEMP_FOLDER, exist_ok=True)
+
+    @app.route('/temp_audio/<filename>')
+    def serve_audio(filename):
+        print(filename)
+        return send_from_directory(TEMP_FOLDER, filename)

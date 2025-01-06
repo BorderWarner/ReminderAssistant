@@ -9,6 +9,11 @@ from sqlalchemy import or_
 from datetime import datetime
 from app import socketio
 import threading
+from gtts import gTTS
+import os
+
+TEMP_FOLDER = "temp_audio"
+os.makedirs(TEMP_FOLDER, exist_ok=True)
 
 bot = telebot.TeleBot(ConfigTelBot.BOT_TOKEN)
 
@@ -182,6 +187,18 @@ def init_telebot(app):
 
         clear_user_state(message.from_user.id)
         text = message.text
+
+        def generate_audio_file(text_sp, user_id_sp):
+            file_name = f"{TEMP_FOLDER}/audio_{user_id_sp}.mp3"
+            tts = gTTS(text=text_sp, lang="ru", slow=False)
+            tts.save(file_name)
+            return file_name
+
+        audio_file_path = generate_audio_file(text, user_id)
+        file_name = audio_file_path.split('/')[-1]
+        file_url = f'/temp_audio/{file_name}'
+
+        socketio.emit('speak_text_event', {'audio_url': file_url})
 
         socketio.emit('speak_text_event', {'user_id': user_id, 'text': text})
 
