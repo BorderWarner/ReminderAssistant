@@ -488,6 +488,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.rate = 0.1;
         utterance.lang = 'ru-RU';
+        console.log(window.speechSynthesis.getVoices());
         window.speechSynthesis.speak(utterance);
     }
 
