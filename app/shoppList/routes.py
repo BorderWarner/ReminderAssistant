@@ -8,6 +8,7 @@ from flask import (
 )
 from app.database import db
 from app.models import Purchase
+from sqlalchemy import desc
 
 shoppList_bp = Blueprint('shoppList', __name__)
 
@@ -23,7 +24,7 @@ def init_socketio_shopplist(app):
     @socketio.on('get_shopp_list')
     def get_shopp_list():
         try:
-            all_purchases = db.session.query(Purchase).all()
+            all_purchases = db.session.query(Purchase).filter(Purchase.status != 'Куплено').order_by(desc(Purchase.time)).all()
             shopp_list = []
             for purchase in all_purchases:
                 shopp_list.append({'id': purchase.id,
