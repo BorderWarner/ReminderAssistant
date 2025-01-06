@@ -135,7 +135,8 @@ def init_telebot(app):
             ("task", "Управление задачами"),
             ("purchases", "Управление списком покупок"),
             ("bAndHol", "Управление праздниками и др"),
-            ('play_sound', 'Гудок')
+            ('play_sound', 'Бип'),
+            ('say_text', 'Озвучка')
         ]
         for command, description in comms:
             help_message += f"\n/{command} - {description}"
@@ -155,6 +156,40 @@ def init_telebot(app):
                 )
         except Exception as e:
             bot.send_message(message.chat.id, f"Ошибка: {e}")
+
+    @bot.message_handler(commands=['say_text'])
+    @authorized_users_only
+    def ask_text_to_speak(message):
+        set_user_state(message.from_user.id, "text_to_speak")
+        bot.send_message(
+            message.chat.id,
+            "Введите текст, который вы хотите озвучить или нажмите 'Отмена'.",
+            reply_markup=cancel_button()
+        )
+        bot.register_next_step_handler(message, receive_text_to_speak)
+
+    def receive_text_to_speak(message):
+        user_id = message.from_user.id
+        current_state = get_user_state(user_id)
+
+        if current_state != 'text_to_speak':
+            bot.reply_to(message, "Завершите текущую операцию перед началом новой.")
+            return
+
+        if message.text.strip().lower() == "отмена":
+            cancel_process(message)
+            return
+
+        clear_user_state(message.from_user.id)
+        text = message.text
+
+        socketio.emit('speak_text_event', {'user_id': user_id, 'text': text})
+
+        bot.reply_to(
+            message,
+            f'Текст "{text}" отправлен для озвучивания!',
+            reply_markup=ReplyKeyboardRemove()
+        )
 
     @bot.message_handler(commands=['task'])
     @authorized_users_only

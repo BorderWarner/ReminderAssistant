@@ -483,4 +483,15 @@ document.addEventListener("DOMContentLoaded", () => {
             console.error("Ошибка воспроизведения звука:", error);
         });
     });
+
+    function speakText(text) {
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'ru-RU';
+        window.speechSynthesis.speak(utterance);
+    }
+
+    socket.on('speak_text_event', (data) => {
+        const text = data.text;
+        speakText(text);
+    });
 });
