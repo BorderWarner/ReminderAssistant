@@ -121,6 +121,7 @@
     text-underline-offset: 8px;
     align-content: center;
     background: rgba(255, 255, 255, 0.1);
+    border-radius: 15px 15px 0 0;
 }
 
 
@@ -140,8 +141,12 @@
 }
 
 #birthdays-details-view, #holidays-details-view {
-    width: 50%;
+    width: 49%;
     height: 100%;
+}
+
+#holidays-details-view {
+    margin-left: 2%;
 }
 
 #birthdays-details-view {
@@ -167,10 +172,14 @@
 
 #birthdays-container, #holidays-container{
     position: relative;
-    width: 50%;
+    width: 49%;
     height: 100%;
     clip-path: content-box;
     /*border-bottom: 5px solid #160c03;*/
+}
+
+#holidays-container {
+    margin-left: 2%;
 }
 
 #birthdays-container {
@@ -179,9 +188,13 @@
 
 #task-list-container, #shopp-list-container{
     position: relative;
-    width: 50%;
+    width: 49%;
     height: 100%;
     /*border-bottom: 5px solid #160c03;*/
+}
+
+#shopp-list-container {
+    margin-left: 2%;
 }
 
 #task-list-container {
