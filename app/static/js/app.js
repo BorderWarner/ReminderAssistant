@@ -485,20 +485,15 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     function speakText(text) {
-        const utterance = new SpeechSynthesisUtterance(text);
-        utterance.rate = 0.4;
-        // utterance.lang = 'ru-RU';
         const voices = speechSynthesis.getVoices();
         console.log("Доступные голоса:");
         voices.forEach((voice, index) => {
             if (voice.lang.indexOf("ru") >= 0) {
-                const voiceIntro = new SpeechSynthesisUtterance(`Голос номер ${index + 1}: ${voice.name}. Я хочу есть.`);
+                const voiceIntro = new SpeechSynthesisUtterance(`Голос номер ${index + 1}: ${voice.name}. Я хочу есть.`+text);
                 voiceIntro.lang = voice.lang;
                 voiceIntro.voice = voice;
-                utterance.lang = voice.lang;
-                utterance.voice = voice;
+                voiceIntro.rate = 0.4;
                 speechSynthesis.speak(voiceIntro);
-                speechSynthesis.speak(utterance);
                 console.log(`${index}: ${voice.name} (${voice.lang}) - ${voice.default ? "по умолчанию" : "не по умолчанию"}`);
             }
         });
