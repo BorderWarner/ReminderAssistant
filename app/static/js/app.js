@@ -487,14 +487,15 @@ document.addEventListener("DOMContentLoaded", () => {
     function speakText(text) {
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.rate = 0.4;
-        utterance.lang = 'ru-RU';
+        // utterance.lang = 'ru-RU';
         const voices = speechSynthesis.getVoices();
         console.log("Доступные голоса:");
         voices.forEach((voice, index) => {
             if (voice.lang.indexOf("ru") >= 0) {
-                const voiceIntro = new SpeechSynthesisUtterance(`Голос номер ${index + 1}: ${voice.name}`);
+                const voiceIntro = new SpeechSynthesisUtterance(`Голос номер ${index + 1}: ${voice.name}. Я хочу есть.`);
                 voiceIntro.lang = voice.lang;
                 voiceIntro.voice = voice;
+                utterance.lang = voice.lang;
                 utterance.voice = voice;
                 speechSynthesis.speak(voiceIntro);
                 speechSynthesis.speak(utterance);
