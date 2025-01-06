@@ -52,7 +52,16 @@
 }
 
 #time-text, #day-text, #current-temp, .header_cont {
-    text-shadow: 2px 2px #ddc7b3, 1px 2px #ddc7b3;
+    /*text-shadow: 2px 2px #ddc7b3, 1px 2px #ddc7b3;*/
+    text-shadow:
+        -0.0075em 0.0075em 0 #e8e8e8,
+        0.005em 0.005em 0 #dcdcdc,
+        0.01em 0.01em 0 #d0d0d0,
+        0.015em 0.015em 0 #c4c4c4,
+        0.02em 0.02em 0 #b8b8b8,
+        0.025em 0.025em 0 #acacac,
+        0.03em 0.03em 0 #a0a0a0,
+        0.035em 0.035em 0 #949494;
 }
 
 @keyframes bounce {
@@ -74,6 +83,23 @@
     animation:bounce 1s infinite
 }
 
+.exclamation-mark {
+    position: absolute;
+    bottom: 5px;
+    right: 5px;
+    background-color: #7a5a3d;
+    color: white;
+    font-weight: bold;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    text-align: center;
+    line-height: 20px;
+    display: none;
+    z-index: 10;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
 .header_cont {
     height: 20%;
     font-size: 2rem;
@@ -81,6 +107,10 @@
     text-underline-offset: 8px;
     align-content: center;
     background: rgba(255, 255, 255, 0.1);
+}
+
+.header_cont_bottom {
+    border-radius: 15px 15px 0 0;
 }
 
 .header_cont_on_bAndH {
@@ -161,6 +191,8 @@
     position: relative;
     overflow: hidden;
     padding: 7px 10px;
+    border-radius: 0 0 15px 15px;
+    max-height: 70%;
 }
 
 #reminder-container {

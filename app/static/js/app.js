@@ -68,11 +68,11 @@ document.addEventListener("DOMContentLoaded", () => {
                     </div>
                     <div id="tAndS">
                         <div id="task-list-container">
-                            <div class="header_cont">Список задач</div>
+                            <div class="header_cont header_cont_bottom">Список задач</div>
                             <div id="task-list" class="list"></div>
                         </div>
                         <div id="shopp-list-container">
-                            <div class="header_cont">Список покупок</div>
+                            <div class="header_cont header_cont_bottom">Список покупок</div>
                             <div id="shopp-list" class="list"></div>
                         </div>
                     </div>
@@ -176,7 +176,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 div.textContent = 'В ближайшие 30 дней нет';
                 birthdaysList.appendChild(div);
             }
-
+            updateVisibleItems()
         }
     });
 
@@ -198,7 +198,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 div.textContent = 'В ближайшие 30 дней нет';
                 holidaysList.appendChild(div);
             }
-
+            updateVisibleItems()
         }
     });
 
@@ -226,7 +226,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 div.textContent = 'Нет невыполненных задач';
                 taskList.appendChild(div);
             }
-
+            updateVisibleItems()
         }
     });
 
@@ -251,9 +251,49 @@ document.addEventListener("DOMContentLoaded", () => {
                 div.textContent = 'Нет покупок';
                 shoppList.appendChild(div);
             }
+            updateVisibleItems()
 
         }
     });
+
+    function updateVisibleItems() {
+        const containerConfigs = [
+            { id: 'shopp-list', showExclamation: true },
+            { id: 'task-list', showExclamation: true },
+            { id: 'holiday-list', showExclamation: false },
+            { id: 'birthday-list', showExclamation: false }
+        ];
+
+        for (const { id, showExclamation } of containerConfigs) {
+            const container = document.getElementById(id);
+            if (!container) continue;
+
+            const items = container.children;
+            const containerRect = container.getBoundingClientRect();
+            let hasOverflow = false;
+
+            for (const item of items) {
+                const itemRect = item.getBoundingClientRect();
+                if (itemRect.bottom > containerRect.bottom) {
+                    item.style.display = 'none';
+                    hasOverflow = true;
+                } else {
+                    item.style.display = '';
+                }
+            }
+
+            if (showExclamation) {
+                let exclamationMark = container.querySelector('.exclamation-mark');
+                if (!exclamationMark) {
+                    exclamationMark = document.createElement('div');
+                    exclamationMark.className = 'exclamation-mark';
+                    exclamationMark.textContent = '!';
+                    container.appendChild(exclamationMark);
+                }
+                exclamationMark.style.display = hasOverflow ? 'block' : 'none';
+            }
+        }
+    }
 
     // Добавление новых данных
     socket.on("new_task", (task) => {
@@ -276,6 +316,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
                 taskList.appendChild(div);
             }
+            updateVisibleItems()
         }
     });
 
@@ -313,6 +354,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
                 shoppList.appendChild(div);
             }
+            updateVisibleItems()
         }
     });
 
@@ -379,6 +421,7 @@ document.addEventListener("DOMContentLoaded", () => {
             div.textContent = `${birthday.name} - ${birthday.date}`;
             birthdaysList.appendChild(div);
         });
+        updateVisibleItems()
     });
 
     socket.on('weather_details_update', (data) => {
