@@ -27,14 +27,14 @@ def init_socketio_hab(app):
     @socketio.on('get_birthdays')
     def get_birthdays():
         try:
-            socketio.emit('birthdays_update', get_birthdays_for(days=90, limit=10))
+            socketio.emit('birthdays_update', get_birthdays_for(days=30, limit=10))
         except Exception as e:
             socketio.emit('error', f"Ошибка: {e}")
 
     @socketio.on('get_holidays')
     def get_holidays():
         try:
-            socketio.emit('holidays_update', get_holidays_for(days=90, limit=10))
+            socketio.emit('holidays_update', get_holidays_for(days=30, limit=10))
         except Exception as e:
             socketio.emit('error', f"Ошибка: {e}")
 
