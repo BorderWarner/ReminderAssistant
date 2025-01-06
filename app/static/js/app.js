@@ -476,4 +476,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 renderView(content_views);
         }
     };
+
+    socket.on('play_sound_event', (data) => {
+        const sound = new Audio(data.sound_url);
+        sound.play().catch(error => {
+            console.error("Ошибка воспроизведения звука:", error);
+        });
+    });
 });

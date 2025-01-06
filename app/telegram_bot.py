@@ -134,12 +134,27 @@ def init_telebot(app):
             ("manageScr", "Управление экраном"),
             ("task", "Управление задачами"),
             ("purchases", "Управление списком покупок"),
-            ("bAndHol", "Управление праздниками и др")
+            ("bAndHol", "Управление праздниками и др"),
+            ('play_sound', 'Гудок')
         ]
         for command, description in comms:
             help_message += f"\n/{command} - {description}"
 
         bot.send_message(message.chat.id, help_message, reply_markup=generate_commands_keyboard(comms))
+
+    @bot.message_handler(commands=['play_sound'])
+    @authorized_users_only
+    def play_sound_handler(message):
+        clear_user_state(message.from_user.id)
+        try:
+            with app.app_context():
+                socketio.emit('play_sound_event', {'sound_url': '/static/material/pop.mp3'})
+                bot.send_message(
+                    message.chat.id,
+                    "Бип."
+                )
+        except Exception as e:
+            bot.send_message(message.chat.id, f"Ошибка: {e}")
 
     @bot.message_handler(commands=['task'])
     @authorized_users_only
