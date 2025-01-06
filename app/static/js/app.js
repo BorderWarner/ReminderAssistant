@@ -491,7 +491,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const voices = window.speechSynthesis.getVoices();
         console.log("Доступные голоса:");
         voices.forEach((voice, index) => {
-            if ('ru' in voice.lang) {
+            if (voice.lang.indexOf("ru") >= 0) {
                 console.log(`${index}: ${voice.name} (${voice.lang}) - ${voice.default ? "по умолчанию" : "не по умолчанию"}`);
             }
         });
