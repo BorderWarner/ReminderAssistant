@@ -28,10 +28,7 @@ def init_socketio_base(app):
         except Exception as e:
             socketio.emit('error', f"Ошибка: {e}")
 
-    TEMP_FOLDER = "temp_audio"
-    os.makedirs(TEMP_FOLDER, exist_ok=True)
-
     @app.route('/temp_audio/<filename>')
     def serve_audio(filename):
-        print(filename)
-        return send_from_directory(TEMP_FOLDER, filename)
+        temp_folder = os.path.join(app.root_path, "static", "temp_audio")
+        return send_from_directory(temp_folder, filename)

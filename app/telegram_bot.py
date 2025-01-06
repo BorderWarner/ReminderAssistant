@@ -12,8 +12,6 @@ import threading
 from gtts import gTTS
 import os
 
-TEMP_FOLDER = "temp_audio"
-os.makedirs(TEMP_FOLDER, exist_ok=True)
 
 bot = telebot.TeleBot(ConfigTelBot.BOT_TOKEN)
 
@@ -188,8 +186,11 @@ def init_telebot(app):
         clear_user_state(message.from_user.id)
         text = message.text
 
+        temp_folder = os.path.join(app.root_path, "static", "temp_audio")
+        os.makedirs(temp_folder, exist_ok=True)
+
         def generate_audio_file(text_sp, user_id_sp):
-            file_name = f"{TEMP_FOLDER}/audio_{user_id_sp}.mp3"
+            file_name = f"{temp_folder}/audio_{user_id_sp}.mp3"
             tts = gTTS(text=text_sp, lang="ru", slow=False)
             tts.save(file_name)
             return file_name
@@ -200,7 +201,7 @@ def init_telebot(app):
 
         socketio.emit('speak_text_event', {'audio_url': file_url})
 
-        socketio.emit('speak_text_event', {'user_id': user_id, 'text': text})
+        threading.Timer(60, lambda: os.remove(audio_file_path)).start()
 
         bot.reply_to(
             message,

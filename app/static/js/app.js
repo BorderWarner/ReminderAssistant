@@ -78,6 +78,8 @@ document.addEventListener("DOMContentLoaded", () => {
                     </div>
                 </div>
             </div>
+            <div id="overlay"></div>
+            <div id="modal_start">Нажмите Enter</div>
         `,
         weatherDetails: `
             <div id="main-view">
@@ -399,6 +401,19 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     renderView(content_views);
+    modal_start()
+
+    function modal_start() {
+        document.getElementById('overlay').style.display = 'block';
+        document.getElementById('modal_start').style.display = 'block';
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                document.getElementById('modal_start').style.display = 'none';
+                document.getElementById('overlay').style.display = 'none';
+            }
+        });
+    }
 
     socket.on('manageScr', (data) => {
         handleTelegramCommand(data.command)
@@ -486,6 +501,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     socket.on('speak_text_event', (data) => {
         const audioUrl = data.audio_url;
+        console.log(data.audio_url)
         if (audioUrl) {
             const audioElement = new Audio(audioUrl);
             audioElement.play()
@@ -495,25 +511,4 @@ document.addEventListener("DOMContentLoaded", () => {
             console.error("URL аудиофайла отсутствует.");
         }
     });
-
-    // function speakText(text) {
-    //     const voices = speechSynthesis.getVoices();
-    //     console.log("Доступные голоса:");
-    //     voices.forEach((voice, index) => {
-    //         if (voice.lang.indexOf("ru") >= 0) {
-    //             const voiceIntro = new SpeechSynthesisUtterance(`Голос номер ${index + 1}: ${voice.name}. Я хочу есть.`+text);
-    //             voiceIntro.lang = voice.lang;
-    //             voiceIntro.voice = voice;
-    //             voiceIntro.rate = 0.8;
-    //             speechSynthesis.speak(voiceIntro);
-    //             console.log(`${index}: ${voice.name} (${voice.lang}) - ${voice.default ? "по умолчанию" : "не по умолчанию"}`);
-    //         }
-    //     });
-    //     // speechSynthesis.speak(utterance);
-    // }
-    //
-    // socket.on('speak_text_event', (data) => {
-    //     const text = data.text;
-    //     speakText(text);
-    // });
 });
