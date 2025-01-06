@@ -486,9 +486,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function speakText(text) {
         const utterance = new SpeechSynthesisUtterance(text);
-        utterance.rate = 0.1;
+        utterance.rate = 0.4;
         utterance.lang = 'ru-RU';
-        console.log(window.speechSynthesis.getVoices());
+        const voices = window.speechSynthesis.getVoices();
+        console.log("Доступные голоса:");
+        voices.forEach((voice, index) => {
+            console.log(`${index}: ${voice.name} (${voice.lang}) - ${voice.default ? "по умолчанию" : "не по умолчанию"}`);
+        });
         window.speechSynthesis.speak(utterance);
     }
 
