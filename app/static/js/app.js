@@ -404,7 +404,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     socket.on('holidays_and_birthdays_details_update', (data) => {
         const holidaysList = document.getElementById("holiday-list");
-        holidaysList.style.height = '90%';
+        holidaysList.style.height = '88%';
         holidaysList.innerHTML = '';
         data.holidays.forEach(holiday => {
             const div = document.createElement("div");
@@ -415,7 +415,7 @@ document.addEventListener("DOMContentLoaded", () => {
             holidaysList.appendChild(div);
         });
         const birthdaysList = document.getElementById("birthday-list");
-        birthdaysList.style.height = '90%';
+        birthdaysList.style.height = '88%';
         birthdaysList.innerHTML = '';
         data.birthdays.forEach(birthday => {
             const div = document.createElement("div");
