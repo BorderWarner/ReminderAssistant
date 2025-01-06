@@ -195,6 +195,10 @@
     max-height: 70%;
 }
 
+.details_cont {
+    max-height: 90%;
+}
+
 #reminder-container {
     margin-bottom: 0;
     height: 50%;

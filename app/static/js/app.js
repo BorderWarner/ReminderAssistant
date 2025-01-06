@@ -96,14 +96,14 @@ document.addEventListener("DOMContentLoaded", () => {
                     <div id="time-text"></div>
                     <div id="day-text"></div>
                 </div>
-                <div id="hAndBDetails" class="d_container">
+                <div id="hAndBDetails" class="d_container ">
                     <div id="birthdays-details-view">
                         <div class="header_cont_on_bAndH">Дни рождения</div>
-                        <div id="birthday-list" class="list"></div>
+                        <div id="birthday-list" class="list details_cont"></div>
                     </div>
                     <div id="holidays-details-view">
                         <div class="header_cont_on_bAndH">Праздники</div>
-                        <div id="holiday-list" class="list"></div>
+                        <div id="holiday-list" class="list details_cont"></div>
                     </div>
                 </div>
             </div>
