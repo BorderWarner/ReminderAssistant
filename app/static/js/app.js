@@ -336,6 +336,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 div.textContent = 'Нет невыполненных дел';
                 taskList.appendChild(div);
             }
+            updateVisibleItems()
         }
     });
 
@@ -374,6 +375,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 div.textContent = 'Нет покупок';
                 shoppList.appendChild(div);
             }
+            updateVisibleItems()
         }
     });
 
