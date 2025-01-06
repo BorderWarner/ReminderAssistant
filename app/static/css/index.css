@@ -172,14 +172,14 @@
 
 #birthdays-container, #holidays-container{
     position: relative;
-    width: 49%;
+    width: 49.5%;
     height: 100%;
     clip-path: content-box;
     /*border-bottom: 5px solid #160c03;*/
 }
 
 #holidays-container {
-    margin-left: 2%;
+    margin-left: 1%;
 }
 
 #birthdays-container {
@@ -188,13 +188,13 @@
 
 #task-list-container, #shopp-list-container{
     position: relative;
-    width: 49%;
+    width: 49.5%;
     height: 100%;
     /*border-bottom: 5px solid #160c03;*/
 }
 
 #shopp-list-container {
-    margin-left: 2%;
+    margin-left: 1%;
 }
 
 #task-list-container {
