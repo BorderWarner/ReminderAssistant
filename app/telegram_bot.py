@@ -190,7 +190,7 @@ def init_telebot(app):
         os.makedirs(temp_folder, exist_ok=True)
 
         def generate_audio_file(text_sp, user_id_sp):
-            file_name = f"{temp_folder}/audio_{user_id_sp}.mp3"
+            file_name = f"{temp_folder}/audio_{user_id_sp}{datetime.now().strftime('%Y_%m_%d_%H_%M_%S')}.mp3"
             tts = gTTS(text=text_sp, lang="ru", slow=False)
             tts.save(file_name)
             return file_name
