@@ -107,11 +107,12 @@
     text-underline-offset: 8px;
     align-content: center;
     background: rgba(255, 255, 255, 0.1);
-}
-
-.header_cont_bottom {
     border-radius: 15px 15px 0 0;
 }
+
+/*.header_cont_bottom {*/
+/*    border-radius: 15px 15px 0 0;*/
+/*}*/
 
 .header_cont_on_bAndH {
     height: 10%;
@@ -192,7 +193,7 @@
     overflow: hidden;
     padding: 7px 10px;
     border-radius: 0 0 15px 15px;
-    max-height: 70%;
+    height: 80%;
 }
 
 #reminder-container {

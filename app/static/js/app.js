@@ -161,7 +161,7 @@ document.addEventListener("DOMContentLoaded", () => {
     socket.on('birthdays_update', (data) => {
         if (content_views === 'main') {
             const birthdaysList = document.getElementById("birthday-list");
-            birthdaysList.style.maxHeight = '70%';
+            birthdaysList.style.height = '80%';
             birthdaysList.innerHTML = '';
             if (data.length > 0) {
                 data.forEach(birthday => {
@@ -184,7 +184,7 @@ document.addEventListener("DOMContentLoaded", () => {
     socket.on('holidays_update', (data) => {
         if (content_views === 'main') {
             const holidaysList = document.getElementById("holiday-list");
-            holidaysList.style.maxHeight = '70%';
+            holidaysList.style.height = '80%';
             holidaysList.innerHTML = '';
             if (data.length > 0) {
                 data.forEach(holiday => {
@@ -404,7 +404,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     socket.on('holidays_and_birthdays_details_update', (data) => {
         const holidaysList = document.getElementById("holiday-list");
-        holidaysList.style.maxHeight = '90%';
+        holidaysList.style.height = '90%';
         holidaysList.innerHTML = '';
         data.holidays.forEach(holiday => {
             const div = document.createElement("div");
@@ -415,7 +415,7 @@ document.addEventListener("DOMContentLoaded", () => {
             holidaysList.appendChild(div);
         });
         const birthdaysList = document.getElementById("birthday-list");
-        birthdaysList.style.maxHeight = '90%';
+        birthdaysList.style.height = '90%';
         birthdaysList.innerHTML = '';
         data.birthdays.forEach(birthday => {
             const div = document.createElement("div");
