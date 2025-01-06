@@ -24,7 +24,7 @@ def init_socketio_shopplist(app):
     @socketio.on('get_shopp_list')
     def get_shopp_list():
         try:
-            all_purchases = db.session.query(Purchase).filter(Purchase.status != 'Куплено').order_by(desc(Purchase.time)).all()
+            all_purchases = db.session.query(Purchase).filter(Purchase.status != 'Куплено').order_by(Purchase.time).all()
             shopp_list = []
             for purchase in all_purchases:
                 shopp_list.append({'id': purchase.id,
