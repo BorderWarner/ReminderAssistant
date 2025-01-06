@@ -492,7 +492,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 const voiceIntro = new SpeechSynthesisUtterance(`Голос номер ${index + 1}: ${voice.name}. Я хочу есть.`+text);
                 voiceIntro.lang = voice.lang;
                 voiceIntro.voice = voice;
-                voiceIntro.rate = 0.4;
+                voiceIntro.rate = 0.8;
                 speechSynthesis.speak(voiceIntro);
                 console.log(`${index}: ${voice.name} (${voice.lang}) - ${voice.default ? "по умолчанию" : "не по умолчанию"}`);
             }
