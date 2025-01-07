@@ -397,12 +397,15 @@ document.addEventListener("DOMContentLoaded", () => {
             socket.emit('get_holidays');
             socket.emit('get_todo');
             socket.emit('get_shopp_list');
+            updateVisibleItems()
         } else if (view === 'weatherDetails') {
             socket.emit('get_time');
             socket.emit('get_weather_details');
+            updateVisibleItems()
         } else if (view === 'birthdaysAndHolidaysDetails') {
             socket.emit('get_time');
             socket.emit('get_bAndH_details');
+            updateVisibleItems()
         }
     }
 
