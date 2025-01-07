@@ -168,8 +168,9 @@ document.addEventListener("DOMContentLoaded", () => {
             if (data.length > 0) {
                 data.forEach(birthday => {
                     const div = document.createElement("div");
+                    div.className = 'listElement'
                     if (birthday.flag_today === 1) {
-                        div.className = 'animation_bounce'
+                        div.className = 'animation_bounce listElement'
                     }
                     div.textContent = `${birthday.name} - ${birthday.date}`;
                     birthdaysList.appendChild(div);
@@ -191,8 +192,9 @@ document.addEventListener("DOMContentLoaded", () => {
             if (data.length > 0) {
                 data.forEach(holiday => {
                     const div = document.createElement("div");
+                    div.className = 'listElement'
                     if (holiday.flag_today === 1) {
-                        div.className = 'animation_bounce'
+                        div.className = 'animation_bounce listElement'
                     }
                     div.textContent = `${holiday.name} - ${holiday.date}`;
                     holidaysList.appendChild(div);
@@ -213,8 +215,9 @@ document.addEventListener("DOMContentLoaded", () => {
             if (data.length > 0) {
                 data.forEach(task => {
                     const div = document.createElement("div");
+                    div.className = 'listElement'
                     if (task.flag_today === 1) {
-                        div.className = 'animation_bounce'
+                        div.className = 'animation_bounce listElement'
                     }
                     div.id = `task_${task.id}`;
                     if (task.deadline) {
@@ -241,6 +244,7 @@ document.addEventListener("DOMContentLoaded", () => {
             if (data.length > 0) {
                 data.forEach(purchase => {
                     const div = document.createElement("div");
+                    div.className = 'listElement'
                     div.id = `purchase_${purchase.id}`;
                     if (purchase.size) {
                         div.textContent = `"${purchase.name}" ${purchase.size} в количестве ${purchase.quantity} шт.`;
@@ -309,8 +313,9 @@ document.addEventListener("DOMContentLoaded", () => {
                     taskList.removeChild(emptyTask);
                 }
                 const div = document.createElement("div");
+                div.className = 'listElement'
                 if (task.flag_today === 1) {
-                    div.className = 'animation_bounce'
+                    div.className = 'animation_bounce listElement'
                 }
                 div.id = `task_${task.id}`;
                 if (task.deadline) {
@@ -351,6 +356,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     shoppList.removeChild(emptyShoppList);
                 }
                 const div = document.createElement("div");
+                div.className = 'listElement'
                 div.id = `purchase_${purchase.id}`;
                 if (purchase.size) {
                     div.textContent = `"${purchase.name}" ${purchase.size} в количестве ${purchase.quantity} шт.`;
