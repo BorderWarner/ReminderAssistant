@@ -3,9 +3,13 @@ from app import socketio, scheduler
 import threading
 from app.telegram_bot import run_telegram_bot, init_telebot
 from app.scheduler_func import start_scheduler_task
+import logging
 
 
 def run():
+    logging.getLogger('TeleBot').disabled = True
+    # logging.getLogger('TeleBot').setLevel(logging.CRITICAL)
+
     app = create_app()
 
     init_telebot(app)

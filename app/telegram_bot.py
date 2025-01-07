@@ -11,9 +11,17 @@ from app import socketio
 import threading
 from gtts import gTTS
 import os
+import requests
+from telebot import ExceptionHandler
 
 
-bot = telebot.TeleBot(ConfigTelBot.BOT_TOKEN)
+class CustomExceptionHandler(ExceptionHandler):
+    def handle(self, exception):
+        print(f'{datetime.now().strftime("%H:%M:%S %d.%m.%Y")} - Error TeleBot: {str(exception)[:50]}...')
+        return False
+
+
+bot = telebot.TeleBot(ConfigTelBot.BOT_TOKEN, exception_handler=CustomExceptionHandler(), colorful_logs=True)
 
 bot_stop_event = threading.Event()
 
@@ -36,10 +44,18 @@ def run_telegram_bot(app):
     with app.app_context():
         while not bot_stop_event.is_set():
             try:
-                bot.polling(non_stop=True, interval=0, timeout=20)
+                bot.infinity_polling(timeout=20,
+                                     long_polling_timeout=25,
+                                     skip_pending=False)
+            except requests.exceptions.ConnectionError as conn_err:
+                print("Ошибка соединения с Telegram API:", conn_err)
+                bot_stop_event.wait(10)
+            except requests.exceptions.RequestException as req_err:
+                print("Ошибка запроса:", req_err)
+                bot_stop_event.wait(10)
             except Exception as e:
                 print(f"Ошибка телеграм-бота: {e}")
-                bot_stop_event.wait(5)
+                bot_stop_event.wait(10)
 
 
 def init_telebot(app):
