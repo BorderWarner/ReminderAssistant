@@ -10,12 +10,16 @@
 .wheel,
 .hamster,
 .hamster div,
-.spoke {
+.spoke,
+.hamster_reverse,
+.hamster_reverse div,
+.spoke_reverse {
   position: absolute;
 }
 
 .wheel,
-.spoke {
+.spoke,
+.spoke_reverse {
   border-radius: 50%;
   top: 0;
   left: 0;
@@ -269,6 +273,43 @@
 
   to {
     transform: rotate(-1turn);
+  }
+}
+
+.hamster_reverse {
+  animation: hamster_reverse var(--dur) ease-in-out infinite;
+  top: 50%;
+  left: calc(50% - 3.5em);
+  width: 7em;
+  height: 3.75em;
+  transform: rotate(4deg) translate(-0.8em,1.85em);
+  transform-origin: 50% 0;
+  z-index: 1;
+}
+
+.spoke_reverse {
+  animation: spoke_reverse var(--dur) linear infinite;
+  background: radial-gradient(100% 100% at center,hsl(0,0%,60%) 4.8%,hsla(0,0%,60%,0) 5%),
+		linear-gradient(hsla(0,0%,55%,0) 46.9%,hsl(0,0%,65%) 47% 52.9%,hsla(0,0%,65%,0) 53%) 50% 50% / 99% 99% no-repeat;
+}
+
+@keyframes hamster_reverse {
+  from, to {
+    transform: scaleX(-1) rotate(4deg) translate(-0.8em,1.85em);
+  }
+
+  50% {
+    transform: scaleX(-1) rotate(0) translate(-0.8em,1.85em);
+  }
+}
+
+@keyframes spoke_reverse {
+  from {
+    transform: scaleX(-1) rotate(0);
+  }
+
+  to {
+    transform: scaleX(-1) rotate(-1turn);
   }
 }
 

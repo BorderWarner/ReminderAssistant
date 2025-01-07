@@ -11,7 +11,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     <div class="left_date_time">
                         <div aria-label="Orange and tan hamster running in a metal wheel" role="img" class="wheel-and-hamster">
                             <div class="wheel"></div>
-                            <div class="hamster">
+                            <div class="hamster_reverse">
                                 <div class="hamster__body">
                                     <div class="hamster__head">
                                         <div class="hamster__ear"></div>
@@ -25,7 +25,7 @@ document.addEventListener("DOMContentLoaded", () => {
                                     <div class="hamster__tail"></div>
                                 </div>
                             </div>
-                            <div class="spoke"></div>
+                            <div class="spoke_reverse"></div>
                         </div>
 <!--                        <div class="🤚">-->
 <!--                            <div class="👉"></div>-->
