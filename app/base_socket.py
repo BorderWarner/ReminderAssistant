@@ -26,9 +26,12 @@ def init_socketio_base(app):
                       'formatted_date': formatted_date}
             socketio.emit('time_update', result)
         except Exception as e:
-            socketio.emit('error', f"Ошибка: {e}")
+            print(f'Error update time: {e}')
 
     @app.route('/temp_audio/<filename>')
     def serve_audio(filename):
-        temp_folder = os.path.join(app.root_path, "static", "temp_audio")
-        return send_from_directory(temp_folder, filename)
+        try:
+            temp_folder = os.path.join(app.root_path, "static", "temp_audio")
+            return send_from_directory(temp_folder, filename)
+        except Exception as e:
+            print(f'Error audio: {e}')
