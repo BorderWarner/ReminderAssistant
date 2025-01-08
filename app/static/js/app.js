@@ -243,6 +243,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     } else {
                         div.textContent = `${task.task}`;
                     }
+                    console.log(task.flag_today, task.task)
                     taskList.appendChild(div);
                 });
             } else {
