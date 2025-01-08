@@ -86,7 +86,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     </div>
                     <div id="tAndS">
                         <div id="task-list-container">
-                            <div class="header_cont header_cont_bottom">Список задач</div>
+                            <div class="header_cont header_cont_bottom">Список дел</div>
                             <div id="task-list" class="list"></div>
                         </div>
                         <div id="shopp-list-container">
