@@ -239,11 +239,10 @@ document.addEventListener("DOMContentLoaded", () => {
                     }
                     div.id = `task_${task.id}`;
                     if (task.deadline) {
-                        div.textContent = `${task.task} до ${task.deadline}`;
+                        div.textContent = `${task.task} - ${task.deadline}`;
                     } else {
                         div.textContent = `${task.task}`;
                     }
-                    console.log(task.flag_today, task.task)
                     taskList.appendChild(div);
                 });
             } else {
@@ -338,7 +337,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
                 div.id = `task_${task.id}`;
                 if (task.deadline) {
-                    div.textContent = `${task.task} до ${task.deadline}`;
+                    div.textContent = `${task.task} - ${task.deadline}`;
                 } else {
                     div.textContent = `${task.task}`;
                 }
@@ -529,7 +528,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     socket.on('speak_text_event', (data) => {
         const audioUrl = data.audio_url;
-        console.log(data.audio_url)
         if (audioUrl) {
             const audioElement = new Audio(audioUrl);
             audioElement.play()

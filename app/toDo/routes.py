@@ -31,10 +31,9 @@ def init_socketio_todo(app):
             for do in all_todo:
                 flag_today = 0
                 if do.deadline:
-                    if today.strftime('%d.%m.%Y') >= do.deadline.strftime('%d.%m.%Y'):
+                    if datetime.strptime(today.strftime('%d.%m.%Y'), '%d.%m.%Y') >= \
+                            datetime.strptime(do.deadline.strftime('%d.%m.%Y'), '%d.%m.%Y'):
                         flag_today = 1
-                print(flag_today, do.deadline.strftime('%d.%m.%Y'), do.task)
-                print('Today', today.strftime('%d.%m.%Y'))
                 todo.append({'id': do.id,
                              'deadline': do.deadline.strftime('%d.%m.%Y %H:%M') if do.deadline else None,
                              'task': do.task,

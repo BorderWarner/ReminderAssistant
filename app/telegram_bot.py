@@ -404,7 +404,8 @@ def init_telebot(app):
                 today = datetime.now()
                 flag_today = 0
                 if new_task.deadline:
-                    if today.strftime('%d.%m.%Y') >= new_task.deadline.strftime('%d.%m.%Y'):
+                    if datetime.strptime(today.strftime('%d.%m.%Y'), '%d.%m.%Y') >= \
+                            datetime.strptime(new_task.deadline.strftime('%d.%m.%Y'), '%d.%m.%Y'):
                         flag_today = 1
 
                 socketio.emit('new_task', {'id': new_task.id,
