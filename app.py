@@ -17,7 +17,6 @@ def run():
     bot_thread.start()
 
     scheduler.start()
-
     start_scheduler_task(app, socketio, scheduler)
 
     try:
