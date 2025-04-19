@@ -147,6 +147,10 @@ def get_birthdays_for(days=None, limit=None):
                     )
                 )
             )
+            if limit:
+                result_query = birthdays_query.limit(limit)
+            else:
+                result_query = birthdays_query.all()
         else:
             birthdays_query = db.session.query(Birthday).filter(
                 or_(
@@ -162,14 +166,34 @@ def get_birthdays_for(days=None, limit=None):
                     Birthday.month < future_month
                 )
             )
+            if limit:
+                result_query = birthdays_query.limit(limit)
+            else:
+                result_query = birthdays_query.all()
     else:
-        birthdays_query = db.session.query(Birthday).order_by(Birthday.month, Birthday.day)
+        if limit:
+            birthdays_query = db.session.query(Birthday).order_by(Birthday.month, Birthday.day).filter(
+                or_(
+                    and_(
+                        Birthday.month == current_month,
+                        Birthday.day >= current_day
+                    ),
+                    and_(
+                        Birthday.month > current_month,
+                    )
+                ))
+            result_query = birthdays_query.limit(limit)
+            if len(result_query) < limit:
+                birthdays_query = db.session.query(Birthday) \
+                    .order_by(Birthday.month, Birthday.day).limit(limit - len(result_query))
+                dop_result_query = birthdays_query.limit(limit)
+                result_query += dop_result_query
+        else:
+            birthdays_query = db.session.query(Birthday).order_by(Birthday.month, Birthday.day)
+            result_query = birthdays_query.all()
 
     birthdays = []
-    if limit:
-        result_query = birthdays_query.limit(limit)
-    else:
-        result_query = birthdays_query.all()
+
     for birthday in result_query:
         birthday_date_this_year = date(today.year, birthday.month, birthday.day)
         if birthday_date_this_year < today:
