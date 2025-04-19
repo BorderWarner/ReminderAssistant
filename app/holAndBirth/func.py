@@ -49,6 +49,10 @@ def get_holidays_for(days=None, limit=None):
                     )
                 )
             )
+            if limit:
+                result_query = holidays_query.limit(limit)
+            else:
+                result_query = holidays_query.all()
         else:
             holidays_query = db.session.query(Holiday).filter(
                 or_(
@@ -64,14 +68,34 @@ def get_holidays_for(days=None, limit=None):
                     Holiday.month < future_month
                 )
             )
+            if limit:
+                result_query = holidays_query.limit(limit)
+            else:
+                result_query = holidays_query.all()
     else:
-        holidays_query = db.session.query(Holiday).order_by(Holiday.month, Holiday.day)
+        if limit:
+            holidays_query = db.session.query(Holiday).order_by(Holiday.month, Holiday.day).filter(
+                or_(
+                    and_(
+                        Holiday.month == current_month,
+                        Holiday.day >= current_day
+                    ),
+                    and_(
+                        Holiday.month > current_month,
+                    )
+                ))
+            result_query = holidays_query.limit(limit)
+            if len(result_query) < limit:
+                holidays_query = db.session.query(Holiday) \
+                    .order_by(Holiday.month, Holiday.day).limit(limit - len(result_query))
+                dop_result_query = holidays_query.limit(limit)
+                result_query += dop_result_query
+        else:
+            holidays_query = db.session.query(Holiday).order_by(Holiday.month, Holiday.day)
+            result_query = holidays_query.all()
 
     holidays = []
-    if limit:
-        result_query = holidays_query.limit(limit)
-    else:
-        result_query = holidays_query.all()
+
     for holiday in result_query:
         holiday_date_this_year = date(today.year, holiday.month, holiday.day)
         if holiday_date_this_year < today:
