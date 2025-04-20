@@ -25,7 +25,6 @@ def init_socketio_hab(app):
 
     @socketio.on('get_birthdays')
     def get_birthdays():
-        print(111111)
         try:
             socketio.emit('birthdays_update', get_birthdays_for(days=30, limit=10))
         except Exception as e:
