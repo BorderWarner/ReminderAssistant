@@ -183,14 +183,18 @@ def get_birthdays_for(days=None, limit=None):
                     )
                 ))
             result_query = birthdays_query.limit(limit)
+            print('result_query: ', len(result_query))
             if len(result_query) < limit:
-                birthdays_query = db.session.query(Birthday) \
-                    .order_by(Birthday.month, Birthday.day).limit(limit - len(result_query))
-                dop_result_query = birthdays_query.limit(limit)
-                result_query += dop_result_query
+                dop_birthdays_query = db.session.query(Birthday) \
+                    .order_by(Birthday.month, Birthday.day)
+                dop_result_query = dop_birthdays_query.limit(limit - len(result_query))
+                print('dop_result_query: ', len(dop_result_query))
+                result_query = [*result_query, *dop_result_query]
         else:
             birthdays_query = db.session.query(Birthday).order_by(Birthday.month, Birthday.day)
             result_query = birthdays_query.all()
+
+    print('result_query: ', len(result_query))
 
     birthdays = []
 
