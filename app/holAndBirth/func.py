@@ -50,7 +50,7 @@ def get_holidays_for(days=None, limit=None):
                 )
             )
             if limit:
-                result_query = holidays_query.limit(limit)
+                result_query = holidays_query.limit(limit).all()
             else:
                 result_query = holidays_query.all()
         else:
@@ -69,7 +69,7 @@ def get_holidays_for(days=None, limit=None):
                 )
             )
             if limit:
-                result_query = holidays_query.limit(limit)
+                result_query = holidays_query.limit(limit).all()
             else:
                 result_query = holidays_query.all()
     else:
@@ -84,11 +84,11 @@ def get_holidays_for(days=None, limit=None):
                         Holiday.month > current_month,
                     )
                 ))
-            result_query = holidays_query.limit(limit)
+            result_query = holidays_query.limit(limit).all()
             if len(result_query) < limit:
                 holidays_query = db.session.query(Holiday) \
                     .order_by(Holiday.month, Holiday.day).limit(limit - len(result_query))
-                dop_result_query = holidays_query.limit(limit)
+                dop_result_query = holidays_query.limit(limit).all()
                 result_query += dop_result_query
         else:
             holidays_query = db.session.query(Holiday).order_by(Holiday.month, Holiday.day)
@@ -196,7 +196,7 @@ def get_birthdays_for(days=None, limit=None):
             birthdays_query = db.session.query(Birthday).order_by(Birthday.month, Birthday.day)
             result_query = birthdays_query.all()
 
-    print('result_query: ', len(result_query))
+    print('result_query_last: ', len(result_query))
 
     birthdays = []
 
@@ -222,4 +222,5 @@ def get_birthdays_for(days=None, limit=None):
         birthdays,
         key=lambda x: x['days_to_birthday']
     )
+    print('sorted_birthdays: ', len(sorted_birthdays))
     return sorted_birthdays
