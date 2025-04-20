@@ -125,7 +125,6 @@ def get_birthdays_for(days=None, limit=None):
     today = date.today()
     current_day = today.day
     current_month = today.month
-    print('CCCCCCC')
     if days:
         future_date = today + timedelta(days=days)
         future_day = future_date.day
@@ -171,7 +170,6 @@ def get_birthdays_for(days=None, limit=None):
             else:
                 result_query = birthdays_query.all()
     else:
-        print('CHECK')
         if limit:
             birthdays_query = db.session.query(Birthday).order_by(Birthday.month, Birthday.day).filter(
                 or_(
@@ -184,19 +182,14 @@ def get_birthdays_for(days=None, limit=None):
                     )
                 ))
             result_query = birthdays_query.limit(limit).all()
-            print('result_query: ', len(result_query))
             if len(result_query) < limit:
                 dop_birthdays_query = db.session.query(Birthday) \
                     .order_by(Birthday.month, Birthday.day)
                 dop_result_query = dop_birthdays_query.limit(limit - len(result_query))
-                print('dop_result_query: ', len(dop_result_query))
                 result_query = [*result_query, *dop_result_query]
         else:
-            print('CHECK33')
             birthdays_query = db.session.query(Birthday).order_by(Birthday.month, Birthday.day)
             result_query = birthdays_query.all()
-
-    print('result_query_last: ', len(result_query))
 
     birthdays = []
 
@@ -222,5 +215,4 @@ def get_birthdays_for(days=None, limit=None):
         birthdays,
         key=lambda x: x['days_to_birthday']
     )
-    print('sorted_birthdays: ', len(sorted_birthdays))
     return sorted_birthdays
