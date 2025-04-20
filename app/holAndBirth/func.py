@@ -89,7 +89,7 @@ def get_holidays_for(days=None, limit=None):
                 holidays_query = db.session.query(Holiday) \
                     .order_by(Holiday.month, Holiday.day).limit(limit - len(result_query))
                 dop_result_query = holidays_query.limit(limit).all()
-                result_query += dop_result_query
+                result_query = [*result_query, *dop_result_query]
         else:
             holidays_query = db.session.query(Holiday).order_by(Holiday.month, Holiday.day)
             result_query = holidays_query.all()
