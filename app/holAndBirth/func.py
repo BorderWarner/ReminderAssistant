@@ -125,15 +125,12 @@ def get_birthdays_for(days=None, limit=None):
     today = date.today()
     current_day = today.day
     current_month = today.month
-    print('CHECK')
+    print('CCCCCCC')
     if days:
-        print('CHECK1232')
-        print(days)
         future_date = today + timedelta(days=days)
         future_day = future_date.day
         future_month = future_date.month
         if future_month >= current_month:
-            print('CHECK575')
             birthdays_query = db.session.query(Birthday).filter(
                 or_(
                     and_(
@@ -155,7 +152,6 @@ def get_birthdays_for(days=None, limit=None):
             else:
                 result_query = birthdays_query.all()
         else:
-            print('CHECK44')
             birthdays_query = db.session.query(Birthday).filter(
                 or_(
                     and_(
@@ -175,6 +171,7 @@ def get_birthdays_for(days=None, limit=None):
             else:
                 result_query = birthdays_query.all()
     else:
+        print('CHECK')
         if limit:
             birthdays_query = db.session.query(Birthday).order_by(Birthday.month, Birthday.day).filter(
                 or_(
