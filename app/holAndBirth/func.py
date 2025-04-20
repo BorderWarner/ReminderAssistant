@@ -148,7 +148,7 @@ def get_birthdays_for(days=None, limit=None):
                 )
             )
             if limit:
-                result_query = birthdays_query.limit(limit)
+                result_query = birthdays_query.limit(limit).all()
             else:
                 result_query = birthdays_query.all()
         else:
@@ -167,7 +167,7 @@ def get_birthdays_for(days=None, limit=None):
                 )
             )
             if limit:
-                result_query = birthdays_query.limit(limit)
+                result_query = birthdays_query.limit(limit).all()
             else:
                 result_query = birthdays_query.all()
     else:
@@ -183,7 +183,7 @@ def get_birthdays_for(days=None, limit=None):
                         Birthday.month > current_month,
                     )
                 ))
-            result_query = birthdays_query.limit(limit)
+            result_query = birthdays_query.limit(limit).all()
             print('result_query: ', len(result_query))
             if len(result_query) < limit:
                 dop_birthdays_query = db.session.query(Birthday) \
