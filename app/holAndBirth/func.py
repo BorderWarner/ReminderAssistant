@@ -94,6 +94,7 @@ def get_holidays_for(days=None, limit=None):
             holidays_query = db.session.query(Holiday).order_by(Holiday.month, Holiday.day)
             result_query = holidays_query.all()
 
+    print(len(result_query))
     holidays = []
 
     for holiday in result_query:
@@ -118,6 +119,7 @@ def get_holidays_for(days=None, limit=None):
         holidays,
         key=lambda x: x['days_to_holiday']
     )
+    print(len(sorted_holidays))
     return sorted_holidays
 
 
