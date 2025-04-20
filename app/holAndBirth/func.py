@@ -128,6 +128,7 @@ def get_birthdays_for(days=None, limit=None):
     print('CHECK')
     if days:
         print('CHECK1232')
+        print(days)
         future_date = today + timedelta(days=days)
         future_day = future_date.day
         future_month = future_date.month
