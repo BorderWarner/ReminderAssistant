@@ -85,6 +85,7 @@ def get_holidays_for(days=None, limit=None):
                     )
                 ))
             result_query = holidays_query.limit(limit).all()
+            print(f'{len(result_query)} < {limit}')
             if len(result_query) < limit:
                 holidays_query = db.session.query(Holiday) \
                     .order_by(Holiday.month, Holiday.day).limit(limit - len(result_query))
